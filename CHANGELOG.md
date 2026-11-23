@@ -17,6 +17,28 @@
 
 ## [Unreleased]
 
+## [1.0.59] - 2026-11-23
+
+### Added
+
+- **插件版本兼容上限检查**。上游只声明 `minPluginVersion`（下限）且加载器不校验，本包补上 `testedWithPlugin` / `maxPluginVersion` 两条自定声明
+- `lib/pure/version.mjs`：`parseVersion` / `compareVersion` / `versionAtLeast` / `checkPluginCompat`（五档：ok / untested / too-new / too-old / unknown）
+- `hooks/zz-version-guard.mjs` 接入检查，超范围**只告警不阻断**（阻断会让用户升级上游后起不来），`compat` 写入 `version-guard.json`
+- `scripts/doctor.mjs` 输出插件版本 + 兼容结论 + 声明范围 + 文件位置
+
+### 为什么（实测 diff 1.13.20 → 1.13.23）
+
+| 上游改动 | 对本包的影响 |
+|---|---|
+| 改了本包打过补丁的 4 个 dist 文件 | 补丁冲突，功能静默失效 |
+| `outboundLastCtxFallback` 默认改为 false（拒发） | `outbound/60-split-bubbles` 里不传 target 的 `ctx.send()` 全部失败 ⇒ 多段回复只有第一段能发出去 |
+
+好消息：契约文件（ext-inbound / ext-hooks / ext-capabilities / extension-store / ext-tool-interaction / middleware-setup）全部未变。
+
+### Changed
+
+- 1.0.58 → 1.0.59
+
 ## [1.0.58] - 2026-11-23
 
 ### Added
