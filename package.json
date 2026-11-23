@@ -37,6 +37,9 @@
     "silk-wasm": "^3.7.1"
   },
   "scripts": {
+    "doctor": "node scripts/doctor.mjs",
+    "doctor:fix": "node scripts/doctor.mjs --fix",
+    "sync:botplay": "node scripts/sync-botplay.mjs",
     "check": "node scripts/check-syntax.mjs",
     "report": "node ./lib/scripts/weekly-report.mjs"
   },

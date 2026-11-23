@@ -1,8 +1,17 @@
 # 群聊玩法扩展
 
+> **这是一个「扩展包」，不是插件本体。**
+>
+> 它不能单独运行，必须装在 [`@zaofan/dsh-qqbot`](https://www.npmjs.com/package/@zaofan/dsh-qqbot)
+> 这个 QQ 机器人插件的扩展目录里，由插件负责加载。
+> 插件本体是第三方作品，**不在本仓库内**。
+
 给 DSH QQ 机器人用的扩展包：积分经济、小店、点歌、语音合成、卡片交互。
 
 > 目录名 `bnn-custom` 为历史沿用（被数据路径与停用清单引用），**展示名以本文件标题为准**。
+>
+> 🩺 **装完先跑一次自检**：`node scripts/doctor.mjs`
+> —— 一条命令看清「路径解析成了什么、哪些目录缺、缺了会怎样」。
 >
 > 📦 **换到别的环境部署 → 看 [`PORTING.md`](PORTING.md)**（可选依赖、需要改的设定、验证清单）
 
@@ -71,13 +80,14 @@
     └── bnn-custom/          ← 本扩展
         ├── qqbot-pack.json  清单（名称/版本/最低插件版本）
         ├── package.json     依赖声明（silk-wasm）
-        ├── commands/        17 个斜杠命令
-        ├── hooks/           18 个启动钩子
-        ├── inbound/         14 个入站处理
-        ├── outbound/         9 个出站装饰（顺序敏感）
-        ├── tools/           15 个 AI 工具
+        ├── commands/        21 个斜杠命令
+        ├── hooks/           22 个启动钩子
+        ├── inbound/         15 个入站处理
+        ├── outbound/        10 个出站装饰（顺序敏感）
+        ├── tools/           17 个 AI 工具
         ├── botplay/         13 个卡片回调
-        └── lib/             67 个共享模块
+        ├── lib/            116 个共享模块
+        └── scripts/          自检脚本（doctor / check-syntax）
 ```
 
 `dataRoot` 就是 qqbot 配置里的 `dataRoot`（没有显式配置时由插件自己推导）。
@@ -98,7 +108,7 @@ pnpm add silk-wasm
 ### 4. 首次运行会自动建目录
 
 **你不需要预先创建任何数据目录。** 实例启动后 `hooks/zz-ensure-workspace.mjs`
-会跑一次，把必需目录建出来（已存在则跳过，**绝不删除或覆盖**），并把结果写到：
+会跑一次，把「必需目录」建出来（已存在则跳过，**绝不删除或覆盖**），并把结果写到：
 
 ```
 {dataRoot}/.qqbot-extensions/data/workspace-dirs.json
@@ -107,7 +117,36 @@ pnpm add silk-wasm
 里面会列出：建了什么、哪些必需目录建失败、哪些可选目录还空着（按需备料）。
 目录本身建不出来（权限问题）时只告警，不影响其他功能。
 
-### 5. 重载扩展
+**具体哪些自动建、哪些不建**：
+
+| 类别 | 行为 |
+|---|---|
+| 必需目录（`Bot/人格/`、`Bot/人格/积分/`、`.qqbot-extensions/data/`） | ✅ 启动时自动建 |
+| botplay 运行时副本 + `lib/` 依赖树 | ✅ 启动时自动复制同步 |
+| 子系统状态目录（`data/roam/`、`data/wake-lottery/` …） | ✅ 首次写数据时自动建 |
+| 可选素材目录（`曲库/`、`美图库/`、`事件库/` …） | ❌ **不自动建** —— 空目录没意义。缺素材时对应玩法友好降级 |
+
+### 5. 装完自检（推荐）
+
+```bash
+cd {dataRoot}/extension-packs/bnn-custom
+node scripts/doctor.mjs
+```
+
+一条命令看清三件事：
+
+- **路径解析成了什么** —— `DATA_ROOT` / `WORKSPACE_ROOT` / `EXT_ROOT` / `EXT_DATA` 的实际值
+- **哪些目录缺** —— 必需（红）/ 可选（灰），以及各自是干什么的
+- **缺了会怎样** —— 会明确告诉你「点歌没反应是因为曲库没放」
+
+```bash
+node scripts/doctor.mjs --fix     # 顺手把必需目录建出来（等价于启动自愈）
+node scripts/doctor.mjs --json    # 机器可读，给 CI / 脚本用
+```
+
+同目录还有 `node scripts/check-syntax.mjs`（全部 `.mjs` 语法自检，克隆下来就能跑）。
+
+### 6. 重载扩展
 
 在 QQ 里发送：
 
@@ -190,25 +229,53 @@ pnpm add silk-wasm
 
 素材缺失时相关玩法返回友好提示，**不会报错、不影响其他功能**。
 
-### ⚠️ 关于 `botplay/`（卡片回调）的特殊要求
+### ⚠️ 关于 `botplay/`（卡片回调）—— 唯一需要「复制同步」的扩展点
 
-六个扩展点里，**`botplay` 是上游唯一不支持扩展包的**：
-`loadBotplayExtensionModule()` 只从 `{dataRoot}/.qqbot-extensions/botplay/` 取纯文件名。
-本包其余五个扩展点（tools/commands/hooks/inbound/outbound）都能直接在包里被扫到。
+六个扩展点里，**`botplay` 是上游唯一不从扩展包加载的**：
 
-本包通过一个 **dist 补丁**解决：内置目录优先，找不到再扫各扩展包的 `botplay/`。
-该补丁（⚠️ 原快照 `维护/补丁快照/qqbot-<版本>/` 已于 2026-11-21 删除，需人工重打）：
-`qqbot-preflight.mjs` 会硬校验它（marker 丢失即报错）。
+```js
+// @zaofan/dsh-qqbot 的 extension-store.js
+botplayExtensionsDir(dataRoot) → {dataRoot}/.qqbot-extensions/botplay/
+loadBotplayExtensionModule()   → 只接受「纯文件名」，不扫 extension-packs/
+```
 
-**如果你不是在本项目的工作区里部署**（比如全新装一份），有两种选择：
+其余五个扩展点（`tools` / `commands` / `hooks` / `inbound` / `outbound`）都能直接在包里被扫到。
 
-| 方案 | 做法 |
+> 📌 常见误解：上游 `ext-packs.js` 的 `EXT_KINDS` 数组里**写了** `'botplay'`，
+> 但**没有任何代码拿它去扫 botplay**。看数组里有名字 ≠ 真被支持。
+
+**本包的处理：启动时自动复制（不需要你手动做任何事）**
+
+`hooks/zz-ensure-workspace.mjs` 在实例启动时调用 `lib/pure/botplay-sync.mjs`，把：
+
+| 从（本包 = 唯一真源） | 到（上游加载位置） |
 |---|---|
-| A. 打补丁（推荐，单一真源） | 把 `extension-store.js` 的补丁应用到你安装的 `@zaofan/dsh-qqbot/dist/features/`，并在 `botplay-events.json` 里用纯文件名指向本包模块 |
-| B. 部署到内置目录 | 把本包 `botplay/*.mjs` 和 `botplay/lib/` 一起复制到 `{dataRoot}/.qqbot-extensions/botplay/`，**同时**把本包 `lib/` 复制到 `{dataRoot}/.qqbot-extensions/lib/`（否则模块的相对 import 解析不到） |
+| `botplay/*.mjs`（13 个卡片） | `{dataRoot}/.qqbot-extensions/botplay/` |
+| `botplay/lib/*.mjs` | `{dataRoot}/.qqbot-extensions/botplay/lib/` |
+| `lib/**`（卡片依赖的 116 个模块） | `{dataRoot}/.qqbot-extensions/lib/` |
 
-**症状识别**：如果 `/玩法` 之类只回一段文字清单、末尾写着"卡片版发不出来"，
-就是 botplay 模块没被加载到 —— 查 `{dataRoot}/.qqbot-extensions/botplay/botplay-ext.log`。
+内容相同就跳过（不反复写盘），源里没有的幽灵文件会清掉。
+
+**为什么必须带上 `lib/`**：卡片里写的是相对 import（`../lib/pure/card-format.mjs`），
+少了这棵依赖树，13 张卡片会全部 `ERR_MODULE_NOT_FOUND`，点开报「模块加载失败」。
+
+**手动重跑 / 自检**
+
+```bash
+cd {dataRoot}/extension-packs/bnn-custom
+
+node scripts/sync-botplay.mjs           # 同步（改完 botplay/ 或 lib/ 之后跑）
+node scripts/sync-botplay.mjs --check   # 只检查，不写
+node scripts/sync-botplay.mjs --force   # 强制全量覆盖
+```
+
+**症状识别**
+
+| 现象 | 查什么 |
+|---|---|
+| 点卡片报「模块加载失败」 | `{dataRoot}/.qqbot-extensions/botplay/botplay-ext.log` 最后几行 |
+| `/玩法` 只回文字清单、说"卡片版发不出来" | 同上，通常是没同步 |
+| 卡片能开但按钮没反应 | 回调注册表，看 `~/.dsh/qqbot-dispatch-diag.log` |
 
 ---
 
