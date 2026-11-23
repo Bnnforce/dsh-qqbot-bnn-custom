@@ -17,6 +17,40 @@
 
 ## [Unreleased]
 
+## [1.0.58] - 2026-11-23
+
+### Added
+
+- **首次开源上架**：仓库 <https://github.com/Bnnforce/dsh-qqbot-bnn-custom>（MIT）
+- `docs/` 三篇文档：`架构说明.md`（消息链路 + 六个扩展点位置）、`扩展点速查.md`（各自导出形态与真实坑）、`排障手册.md`（症状→查哪里 + 日志位置表）
+- `THIRD-PARTY-NOTICES.md`：内置组件许可汇总（MIT / Apache-2.0 / **zlib**——`puff` 是 Mark Adler 的 zlib 许可，不是 MIT）
+- `scripts/doctor.mjs`：环境自检（路径解析 / 目录缺什么 / 缺了会怎样），支持 `--fix` 与 `--json`
+- `scripts/sync-botplay.mjs`：botplay 运行时副本同步 CLI（薄封装 `lib/pure/botplay-sync.mjs`）
+- `scripts/check-syntax.mjs`：全部 `.mjs` 语法自检（克隆即可跑）
+- `package.json` 补 repository / homepage / bugs，scripts 增加 doctor / doctor:fix / sync:botplay
+
+### Fixed
+
+- **`.gitignore` 误排除了点歌解码器的必需文件**：`node_modules/` 与 `dist/` 规则把
+  `lib/song/vendor/mp3dec/mpg123-decoder/dist/`（WASM 解码器主文件）和
+  `lib/song/vendor/mp3dec/node_modules/`（28 个运行时依赖）一起忽略了 ⇒
+  别人克隆下来 MP3 解码直接不可用。已加例外段 `!lib/song/vendor/**`。
+- 补 `mpg123-decoder` / `@wasm-audio-decoders/common` 的 LICENSE 原文（上游包未带）
+
+### Changed
+
+- 开源脱敏（**只改注释/示例，代码逻辑零改动**，已逐文件 sha256 对比确认）：
+  真实群名/群友昵称/openid/群号 → 占位符；作者环境绝对路径 → `{WORKSPACE_ROOT}` / `{DSH_HOME}`
+- README 开头声明「这是扩展包，不是插件本体，需先装 `@zaofan/dsh-qqbot`」
+- README 重写 botplay 章节：删掉已废弃的「dist 补丁」说法，改为启动时自动复制同步
+- README 文件计数更正（21 命令 / 22 hooks / 15 inbound / 10 outbound / 17 tools / 116 lib）
+
+### 说明
+
+- 本轮**没有行为变更**：13 卡片、15 inbound、7 suites 448 条断言全部照旧通过
+- 冷知识：上游 `ext-packs.js` 的 `EXT_KINDS` 数组里**写了** `botplay`，但没有任何代码拿它去扫 botplay —— 看数组里有名字 ≠ 真被支持
+
+
 ## [1.0.57] - 2026-11-23
 
 ### 修复（6 项 P0/P1，全部有实测证据）
