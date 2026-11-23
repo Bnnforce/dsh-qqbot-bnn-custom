@@ -3,7 +3,7 @@
   "author": "Bnnforce",
   "version": "1.0.57",
   "description": "群聊玩法扩展：积分经济、小店、点歌（本地曲库）、语音合成、卡片交互、人格切换、隐私保护",
-  "homepage": "",
+  "homepage": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom",
   "tags": [
     "Elysia",
     "群聊",
@@ -16,7 +16,7 @@
   ],
   "minPluginVersion": "1.11.42",
   "license": "MIT",
-  "repository": "",
+  "repository": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom",
   "keywords": [
     "qqbot",
     "dsh",

@@ -1,9 +1,9 @@
 {
   "name": "bnn-custom",
-  "version": "1.0.54",
+  "version": "1.0.57",
   "private": true,
   "//": "⚠️ 禁止添加 \"type\": \"module\"。本包内含 UMD/CJS 依赖（lib/lunar/lunar.js 及 lib/song/vendor/mp3dec/*），一旦声明 type=module，这些 .js 会被当作 ESM，UMD 包装的 module.exports 分支失效 → 黄历/点歌解码静默降级（2026-11-20 实际踩过，6 个 mock 测试报红）。本包自有代码一律用 .mjs 扩展名，不需要 type 字段。",
-  "description": "爱莉希雅自定义扩展包 —— DSH QQ 机器人群聊玩法扩展（积分经济 / 小店 / 点歌 / 语音 / 卡片玩法 / 人格联动）",
+  "description": "DSH QQ 机器人群聊玩法扩展 —— 积分经济 / 小店 / 点歌 / 语音合成 / 卡片交互 / 人格联动",
   "license": "MIT",
   "files": [
     "tools/",
@@ -13,6 +13,7 @@
     "inbound/",
     "outbound/",
     "lib/",
+    "scripts/",
     "qqbot-pack.json",
     "README.md",
     "CHANGELOG.md",
@@ -36,8 +37,15 @@
     "silk-wasm": "^3.7.1"
   },
   "scripts": {
-    "report": "node ./lib/scripts/weekly-report.mjs",
-    "check": "node ../../../维护/05-工具/check-ext-imports.mjs",
-    "preflight": "node ../../../scripts/qqbot-preflight.mjs"
+    "check": "node scripts/check-syntax.mjs",
+    "report": "node ./lib/scripts/weekly-report.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bnnforce/dsh-qqbot-bnn-custom.git"
+  },
+  "homepage": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom#readme",
+  "bugs": {
+    "url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/issues"
   }
 }
