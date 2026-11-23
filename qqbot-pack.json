@@ -1,0 +1,28 @@
+{
+  "name": "爱莉希雅自定义扩展",
+  "author": "Bnnforce",
+  "version": "1.0.57",
+  "description": "群聊玩法扩展：积分经济、小店、点歌（本地曲库）、语音合成、卡片交互、人格切换、隐私保护",
+  "homepage": "",
+  "tags": [
+    "Elysia",
+    "群聊",
+    "人格",
+    "识图",
+    "管理",
+    "小店",
+    "积分",
+    "玩法"
+  ],
+  "minPluginVersion": "1.11.42",
+  "license": "MIT",
+  "repository": "",
+  "keywords": [
+    "qqbot",
+    "dsh",
+    "extension",
+    "persona",
+    "cards",
+    "tts"
+  ]
+}

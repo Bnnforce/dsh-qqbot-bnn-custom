@@ -1,0 +1,46 @@
+# ── 依赖 ──
+node_modules/
+.pnpm-store/
+
+# ── 运行时数据（本仓库不含任何数据）──
+data/
+.state/
+.state-*/
+*.log
+*.jsonl
+*.jsonl.*
+
+# ── 本地配置 / 凭据（绝不能提交）──
+.env
+.env.*
+*.token
+*.secret
+*.pem
+*.key
+.credentials
+
+# ── 媒体素材（本项目原则：代码开源，素材私有）──
+*.mp3
+*.wav
+*.silk
+*.amr
+*.ogg
+
+# ── 临时 / 缓存 ──
+tmp/
+.tmp/
+.tmp-*
+*.tmp
+*.bak
+*.bak-*
+*.orig
+.cache/
+dist/
+
+# ── 编辑器 / 系统 ──
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~

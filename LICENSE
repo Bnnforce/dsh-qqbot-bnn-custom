@@ -1,0 +1,45 @@
+MIT License
+
+Copyright (c) 2026 bnn-custom contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## 附加说明（素材与第三方）
+
+本许可证**仅覆盖代码**（本目录下的 .mjs / .json / .md 等源文件）。
+
+以下内容**不在**本许可证范围内，且**未包含**在本仓库中：
+
+1. **角色相关素材**：《崩坏3》及其角色（含爱莉希雅）的版权归 miHoYo 所有。
+   本扩展不含任何官方立绘、语音、剧情文本。
+2. **音乐与音频**：用户自备的曲库、TTS 参考音、语音模型权重，归其各自权利人所有。
+3. **人格设定文本**：由使用者自行提供，或来自公开的二创内容。
+
+## 第三方依赖
+
+本扩展运行时依赖以下第三方包，其许可证由各自作者提供：
+
+- `silk-wasm` — SILK 编解码（见其包内 LICENSE）
+- `mpg123-decoder` — MP3 解码（见其包内 LICENSE）
+- `@napi-rs/canvas` — 图像渲染（见其包内 LICENSE）
+- `@deepseek-ai/dsh-tools` — 工具框架（DSH 生态）
+
+使用前请自行核对这些依赖的许可条款。
