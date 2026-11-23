@@ -127,7 +127,7 @@ cp -r lib/wake-lottery /tmp/portable-test/
 ## 测试
 
 ```bash
-cd {WORKSPACE_ROOT}/Bot
+cd /path/to/your/DSH/Bot
 node 维护/04-测试/mock-wakelottery-core.mjs         # 75 条
 node 维护/04-测试/mock-wakelottery-store.mjs        # 60 条
 node 维护/04-测试/mock-wakelottery-prizes.mjs       # 54 条

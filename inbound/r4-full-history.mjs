@@ -61,7 +61,7 @@ void resolveAppendLine();
 export const name = 'r4-full-history';
 
 const DSH_HOME = process.env.DSH_HOME
-  || join(process.env.HOME || '{DSH_HOME}/files/home', '.dsh');
+  || join(process.env.HOME || '/data/data/com.dsharnessmobile.shell/files/home', '.dsh');
 const PERSONA_ROOT = process.env.PERSONA_DATA_ROOT
   || join(DSH_HOME, 'data', 'dsh-anti-ai-persona');
 const HISTORY_DIR = join(PERSONA_ROOT, 'state', 'r4-group-history');

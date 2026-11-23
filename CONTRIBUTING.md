@@ -43,9 +43,8 @@ for f in $(find . -name '*.mjs'); do
 done
 
 # ② 零硬编码路径
-grep -rn "'{WORKSPACE_ROOT}\|'/data/data/\|'/data/user/0/" \
-  --include='*.mjs' . | grep -v 'process\.env'
-# 期望：无输出
+grep -rnE "'(/Users/|/home/|/storage/|/data/)" --include='*.mjs' . | grep -v 'process\.env'
+# 期望：无输出（注释里举例说明时也建议用占位符）
 
 # ③ 无真实群号/openid
 grep -rnE '[0-9A-F]{32}' --include='*.mjs' .

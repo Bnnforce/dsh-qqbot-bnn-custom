@@ -24,7 +24,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 /**
- * 找到本账号的设置文件（{DSH_HOME}/qqbot-settings/<profile>/<ns>.json）。
+ * 找到本账号的设置文件（/data/data/com.dsharnessmobile.shell/qqbot-settings/<profile>/<ns>.json）。
  *
  * 为什么需要它（2026-11-06 修）：DSH 给**所有** `/api/*` 加了鉴权，
  *   hook 进程内 fetch 没有凭据 → `/api/qqbot-settings/update` 恒 401。

@@ -75,7 +75,7 @@ function slotOfHour(hour) {
 function collectLifeData() {
   try {
     const PERSONA_ROOT = process.env.PERSONA_DATA_ROOT
-      || `${process.env.HOME || '{DSH_HOME}/files/home'}/.dsh/data/dsh-anti-ai-persona`;
+      || `${process.env.HOME || '/data/data/com.dsharnessmobile.shell/files/home'}/.dsh/data/dsh-anti-ai-persona`;
 
     // ① 当前时段
     const now = new Date();

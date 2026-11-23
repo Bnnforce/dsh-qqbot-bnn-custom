@@ -54,7 +54,7 @@ async function nodeBin() {
   } catch { /* next */ }
   const cands = [
     process.env.DSH_NODE, process.env.NODE,
-    `${process.env.PREFIX || '{DSH_HOME}/files/usr'}/bin/node`,
+    `${process.env.PREFIX || '/data/data/com.dsharnessmobile.shell/files/usr'}/bin/node`,
     '/usr/bin/node', '/usr/local/bin/node', '/system/bin/node',
   ].filter(Boolean);
   for (const c of cands) {

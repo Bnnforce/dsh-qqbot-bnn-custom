@@ -46,11 +46,11 @@ function versions() {
   const home = homedir();
   const qqbot = pkgVersion([
     join(home, '.dsh/profiles/web/node_modules/@zaofan/dsh-qqbot/package.json'),
-    `${process.env.HOME || '{DSH_HOME}/files/home'}/.dsh/profiles/web/node_modules/@zaofan/dsh-qqbot/package.json`,
+    `${process.env.HOME || '/data/data/com.dsharnessmobile.shell/files/home'}/.dsh/profiles/web/node_modules/@zaofan/dsh-qqbot/package.json`,
   ]);
   const dsh = pkgVersion([
     join(home, '.dsh/profiles/web/node_modules/@deepseek-ai/dsh/package.json'),
-    `${process.env.PREFIX || '{DSH_HOME}/files/usr'}/lib/node_modules/@deepseek-ai/dsh/package.json`,
+    `${process.env.PREFIX || '/data/data/com.dsharnessmobile.shell/files/usr'}/lib/node_modules/@deepseek-ai/dsh/package.json`,
   ]) || String(process.env.DSH_VERSION || '');
   const pack = readJson(join(EXT_ROOT, 'qqbot-pack.json')) || {};
   return {

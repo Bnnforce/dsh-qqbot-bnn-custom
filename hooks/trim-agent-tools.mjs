@@ -230,7 +230,7 @@ export async function run(env) {
   /** 一次性诊断：把真实情况写文件（logger 实测被吞，只能落盘）。 */
   const diag = (tag, data) => {
     try {
-      const p = `${process.env.HOME || '{DSH_HOME}/files/home'}/.dsh/data/dsh-anti-ai-persona/trim-diag.log`;
+      const p = `${process.env.HOME || '/data/data/com.dsharnessmobile.shell/files/home'}/.dsh/data/dsh-anti-ai-persona/trim-diag.log`;
       appendFileSync(p, `${new Date().toISOString()} ${tag} ${JSON.stringify(data)}\n`, 'utf8');
     } catch { /* ignore */ }
   };

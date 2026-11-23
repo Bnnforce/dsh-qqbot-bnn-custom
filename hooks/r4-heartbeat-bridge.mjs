@@ -71,7 +71,7 @@ import { registerWithFallback } from './zz-central-scheduler.mjs';
 export const name = 'r4-heartbeat-bridge';
 
 /** PERSONA_DATA_ROOT 的默认位置（与 R4 的 paths.ts 保持一致）。 */
-const DSH_HOME = process.env.DSH_HOME || join(process.env.HOME || '{DSH_HOME}/files/home', '.dsh');
+const DSH_HOME = process.env.DSH_HOME || join(process.env.HOME || '/data/data/com.dsharnessmobile.shell/files/home', '.dsh');
 const PERSONA_ROOT = process.env.PERSONA_DATA_ROOT
   || join(DSH_HOME, 'data', 'dsh-anti-ai-persona');
 

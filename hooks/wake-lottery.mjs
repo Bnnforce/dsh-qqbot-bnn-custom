@@ -65,7 +65,7 @@ function dataRootOf(env) {
 function listGroups() {
   try {
     const override = String(process.env.PERSONA_DATA_ROOT ?? '').trim();
-    const home = process.env.DSH_HOME || join(process.env.HOME || '{DSH_HOME}/files/home', '.dsh');
+    const home = process.env.DSH_HOME || join(process.env.HOME || '/data/data/com.dsharnessmobile.shell/files/home', '.dsh');
     const dir = join(override || join(home, 'data', 'dsh-anti-ai-persona'), 'state', 'heartbeat');
     if (!existsSync(dir)) return [];
     return readdirSync(dir)
