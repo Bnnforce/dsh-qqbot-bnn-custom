@@ -24,7 +24,8 @@
  *
  * 只读（除 --fix）：不删任何东西；--fix 也只 mkdir 必需目录，绝不覆盖/清空。
  */
-import { existsSync, statSync, readdirSync } from 'node:fs';
+import { existsSync, statSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 /**
  * 只关心「本包真正会读」的环境变量。
@@ -130,6 +131,46 @@ line(`数据根 DATA_ROOT   = ${DATA_ROOT}`);
 line(`工作区 WORKSPACE_ROOT = ${WORKSPACE_ROOT}`);
 line(`本包    EXT_ROOT   = ${EXT_ROOT}`);
 line(`共享数据 EXT_DATA  = ${EXT_DATA}`);
+
+// ── 插件版本兼容（上游只有下限，上限是本包自己补的）────────────────
+try {
+  const { checkPluginCompat } = await import(new URL('lib/pure/version.mjs', PKG).href);
+  const { homedir } = await import('node:os');
+  const manifest = JSON.parse(readFileSync(new URL('qqbot-pack.json', PKG), 'utf8'));
+
+  // 插件可能装在哪：环境变量 → DSH_PROFILE_DIR → 扫 ~/.dsh/profiles/*
+  const candidates = [];
+  if (process.env.QQBOT_PLUGIN_DIR) candidates.push(join(process.env.QQBOT_PLUGIN_DIR, 'package.json'));
+  if (process.env.DSH_PROFILE_DIR) candidates.push(join(process.env.DSH_PROFILE_DIR, 'node_modules/@zaofan/dsh-qqbot/package.json'));
+  const profilesDir = join(homedir(), '.dsh', 'profiles');
+  try {
+    for (const name of readdirSync(profilesDir)) {
+      candidates.push(join(profilesDir, name, 'node_modules/@zaofan/dsh-qqbot/package.json'));
+    }
+  } catch { /* 没有 profiles 目录就算了 */ }
+
+  let pluginVersion = '';
+  let foundAt = '';
+  for (const c of candidates) {
+    try {
+      pluginVersion = String(JSON.parse(readFileSync(c, 'utf8')).version || '');
+      if (pluginVersion) { foundAt = c; break; }
+    } catch { /* 下一个 */ }
+  }
+
+  const compat = checkPluginCompat(pluginVersion, {
+    min: manifest.minPluginVersion,
+    max: manifest.maxPluginVersion,
+    tested: manifest.testedWithPlugin,
+  });
+  const icon = compat.level === 'ok' ? '✅' : compat.level === 'warn' ? '⚠️ ' : '❌';
+  line(`插件版本      = ${compat.actual || '(未找到)'}  ${icon}`);
+  line(`                ${compat.message}`);
+  line(`                声明：min=${manifest.minPluginVersion || '-'} tested=${manifest.testedWithPlugin || '-'} max=${manifest.maxPluginVersion || '-'}`);
+  if (foundAt) line(`                位置：${foundAt}`);
+} catch (e) {
+  line(`插件版本      = (检查失败: ${String(e && e.message).slice(0, 80)})`);
+}
 if (PARTIAL_OVERRIDE) {
   line();
   line('⚠️  检测到「半改道」：设了 QQBOT_DATA_ROOT 但没设 BNN_WORKSPACE_ROOT。');

@@ -16,6 +16,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { DATA_ROOT, EXT_DATA, EXT_ROOT } from '../lib/pack-paths.mjs';
+import { checkPluginCompat, versionAtLeast } from '../lib/pure/version.mjs';
 import { registerWithFallback } from './zz-central-scheduler.mjs';
 
 export const name = 'version-guard';
@@ -33,15 +34,7 @@ function pkgVersion(paths) {
   }
   return '';
 }
-function versionAtLeast(actual, minimum) {
-  const a = String(actual || '').split(/[.+-]/).map((x) => Number.parseInt(x, 10) || 0);
-  const b = String(minimum || '').split(/[.+-]/).map((x) => Number.parseInt(x, 10) || 0);
-  for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
-    if ((a[i] || 0) > (b[i] || 0)) return true;
-    if ((a[i] || 0) < (b[i] || 0)) return false;
-  }
-  return true;
-}
+// versionAtLeast 已移到 lib/pure/version.mjs（与 compat 检查共用同一实现）
 function versions() {
   const home = homedir();
   const qqbot = pkgVersion([
@@ -114,17 +107,56 @@ async function checkMtimes(env) {
 
 export async function run(env) {
   const v = versions();
-  const expected = v.contract;
-  const mismatch = expected && v.qqbot && !versionAtLeast(v.qqbot, expected);
+  const pack = readJson(join(EXT_ROOT, 'qqbot-pack.json')) || {};
+  /**
+   * 兼容性判定（2026-11-23 新增「上限」检查）。
+   *
+   * 为什么必须有：上游只声明 minPluginVersion（下限），**没有上限机制**，
+   * 而真实风险是向上不兼容 —— 1.13.21+ 改了 4 个我们打过补丁的文件，
+   * 还把 outboundLastCtxFallback 默认改成拒发（影响 outbound/60-split-bubbles）。
+   *
+   * 策略：**只告警不阻断**。阻断会让用户升级上游后连机器人都起不来，比降级更糟。
+   */
+  const compat = checkPluginCompat(v.qqbot, {
+    min: String(pack.minPluginVersion || ''),
+    max: String(pack.maxPluginVersion || ''),
+    tested: String(pack.testedWithPlugin || ''),
+  });
+
+  // 旧判据（仅下限）保留，防止有人只写了 minPluginVersion
+  const belowMin = v.contract && v.qqbot && !versionAtLeast(v.qqbot, v.contract);
+
+  const status = compat.level === 'error' || belowMin ? 'warn'
+    : compat.level === 'warn' ? 'warn'
+      : 'ok';
+
   const row = {
     timestamp: new Date().toISOString(),
     versions: v,
-    expectedMinPlugin: expected,
-    status: mismatch ? 'warn' : 'ok',
-    note: mismatch ? 'QQBot 版本与扩展包 minPluginVersion 不一致，仅告警' : '',
+    expectedMinPlugin: v.contract,
+    testedWithPlugin: String(pack.testedWithPlugin || ''),
+    maxPluginVersion: String(pack.maxPluginVersion || ''),
+    compat: { status: compat.status, level: compat.level, message: compat.message },
+    status,
+    note: compat.status === 'ok'
+      ? ''
+      : (compat.message || (belowMin ? 'QQBot 版本低于 minPluginVersion，仅告警' : '')),
   };
   write(row);
-  if (mismatch) warn(env, `QQBot ${v.qqbot} != minPluginVersion ${expected}`);
+
+  if (compat.status !== 'ok') {
+    warn(env, `[兼容] ${compat.message}`);
+    if (compat.status === 'too-new') {
+      warn(env, '[兼容] 升级上游后务必：① 重打 4 个 dist 补丁 ② 检查 outboundLastCtxFallback '
+        + '③ 跑 node test/... 与 preflight ④ 通过后再把 qqbot-pack.json 的 maxPluginVersion 放宽');
+    }
+  } else if (v.qqbot) {
+    try { (env.logger ?? env.log)?.info?.(`[version-guard] 插件 ${v.qqbot} 与验证版本一致`); } catch { /* ignore */ }
+  }
+  if (belowMin && compat.status === 'ok') {
+    warn(env, `QQBot ${v.qqbot} < minPluginVersion ${v.contract}`);
+  }
+
   for (const dir of [join(EXT_ROOT, 'commands'), join(EXT_ROOT, 'inbound')]) {
     for (const f of scanFiles(dir)) mtimes.set(f.abs, f.mtime);
   }
