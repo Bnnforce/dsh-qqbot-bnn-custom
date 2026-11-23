@@ -13,7 +13,12 @@
 > 🩺 **装完先跑一次自检**：`node scripts/doctor.mjs`
 > —— 一条命令看清「路径解析成了什么、哪些目录缺、缺了会怎样」。
 >
-> 📦 **换到别的环境部署 → 看 [`PORTING.md`](PORTING.md)**（可选依赖、需要改的设定、验证清单）
+> 📚 **文档索引**：
+> - 想改代码 → [`docs/扩展点速查.md`](docs/扩展点速查.md)（六套扩展点的导出形态 + 真实坑）
+> - 想懂链路 → [`docs/架构说明.md`](docs/架构说明.md)（一条消息从进来到出去经过哪些层）
+> - 出问题 → [`docs/排障手册.md`](docs/排障手册.md)（症状 → 查哪里，含日志位置表）
+> - 换环境 → [`PORTING.md`](PORTING.md)（可选依赖、要改的设定、验证清单）
+> - 第三方许可 → [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)（含内置的 MIT / Apache-2.0 / zlib 组件）
 
 ---
 

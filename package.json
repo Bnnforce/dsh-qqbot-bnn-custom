@@ -14,12 +14,14 @@
     "outbound/",
     "lib/",
     "scripts/",
+    "docs/",
     "qqbot-pack.json",
     "README.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "LICENSE",
-    "PORTING.md"
+    "PORTING.md",
+    "THIRD-PARTY-NOTICES.md"
   ],
   "keywords": [
     "qqbot",

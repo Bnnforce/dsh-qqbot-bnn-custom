@@ -44,3 +44,11 @@ Thumbs.db
 .vscode/
 *.swp
 *~
+
+# ── 例外：lib/song/vendor/ 下是**内置的第三方解码器**，必须随仓库分发 ──
+# 少了这些，点歌的 MP3 解码会直接不可用（不是「降级」，是拿不到解码器）。
+# 许可声明见 THIRD-PARTY-NOTICES.md。
+!lib/song/vendor/
+!lib/song/vendor/**
+!lib/song/vendor/**/dist/
+!lib/song/vendor/**/node_modules/
