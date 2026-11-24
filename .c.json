@@ -1,0 +1,1064 @@
+[
+  {
+    "sha": "5a5849274af090ca039ecb4baf13e41e049da60d",
+    "node_id": "C_kwDOV4usMdoAKDVhNTg0OTI3NGFmMDkwY2EwMzllY2I0YmFmMTNlNDFlMDQ5ZGE2MGQ",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-24T02:55:56Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-24T02:55:56Z"
+      },
+      "message": "chore: 删掉误拷到仓库根的 架构说明.md（正确位置在 docs/）",
+      "tree": {
+        "sha": "a5e937041a58fe5892e9abc4c62a43fad5293010",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/a5e937041a58fe5892e9abc4c62a43fad5293010"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/5a5849274af090ca039ecb4baf13e41e049da60d",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/5a5849274af090ca039ecb4baf13e41e049da60d",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/5a5849274af090ca039ecb4baf13e41e049da60d",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/5a5849274af090ca039ecb4baf13e41e049da60d/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "f87bdbf50ff9eab4155dadea495a40f2f8742915",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/f87bdbf50ff9eab4155dadea495a40f2f8742915",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/f87bdbf50ff9eab4155dadea495a40f2f8742915"
+      }
+    ]
+  },
+  {
+    "sha": "f87bdbf50ff9eab4155dadea495a40f2f8742915",
+    "node_id": "C_kwDOV4usMdoAKGY4N2JkYmY1MGZmOWVhYjQxNTVkYWRlYTQ5NWE0MGYyZjg3NDI5MTU",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-24T02:55:23Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-24T02:55:23Z"
+      },
+      "message": "feat(compat): 适配上游 1.13.25，本地 dist 补丁全部退役（1.0.63）\n\n## 上游通读结论（1.13.20 → 1.13.25）\n\n| 版本 | 关键变更 | 对本站影响 |\n|---|---|---|\n| 1.13.21 | send() 无 target 默认拒发；新增 toolErrorMode / turnErrorModeByScope / sessionKindHint；出站 reasoning-delta 带投递目标 | 拆分气泡会只发第一段（1.13.24 才修）；新配置默认值 = 旧行为，无需改配置 |\n| 1.13.22 | 尖括号媒体标记容错；混合消息按原文顺序分段 | 与本包出站扩展不冲突 |\n| 1.13.23 | 聊天记录链接落盘 + -dl.mjs 批量下载；reply_gate 改用 hook 取消 | 入站正文变短，解析不受影响 |\n| 1.13.24 | 修复出站链 ctx.send 自带 target（多段回复恢复） | 拆分气泡恢复正常 |\n| 1.13.25 | 出站扩展 9 个能力从 undefined 变可用；合并我们的 5 个修复 | 以前调了没反应的代码开始真执行（已核对无副作用） |\n\n## 补丁退役\n\nPR #88 已合并（2026-11-24T02:00Z，merge b7b70e0），5 个修复进入 1.13.25。\n逐条核对了 1.13.25 的实现（不是看 CHANGELOG 而是看代码）：\n\n- clickerId ?? triggererId ✓\n- safeReply(target, text, mention) + 7 个点击路径调用点 ✓\n- faceType=6 → 【图片表情】 ✓\n- 会话命令 caps.replyTarget 兜底 + FORK_TIMEOUT ✓\n- web_search/web_fetch 错误群内静默 ✓\n\n我们的私有 marker 在合并时被清掉（0 处残留），所以判据从「查 marker」改成「查功能代码」——\nmarker 只能证明我们打过补丁，功能代码才能证明行为存在。\n\n## 兼容声明\n\n- minPluginVersion 1.11.42 → 1.13.21（ctx.send 拒发语义起点）\n- testedWithPlugin / maxPluginVersion 1.13.20 → 1.13.25\n- version-guard 判定实测：1.13.20→too-old、1.13.21~24→untested、1.13.25→ok、1.13.26→too-new\n\n## 风险核对（appendWake 突然可用）\n\n1.13.25 之前 ctx.appendWake 是 undefined。我们的 daily-checkin / shop / wake-lottery\n早在 2026-11-17 就主动移除了该调用（卡片已写明结果，再唤醒会多发一条），\n所以「能力突然可用」不会造成重复回合；只有 commands/唤醒.mjs 有意使用。\n\n## 验证\n\n- 全量回归 8/8\n- check-syntax 通过",
+      "tree": {
+        "sha": "63ef2aa1e9ce636f0a9a56348cfa7476158daaf0",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/63ef2aa1e9ce636f0a9a56348cfa7476158daaf0"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/f87bdbf50ff9eab4155dadea495a40f2f8742915",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/f87bdbf50ff9eab4155dadea495a40f2f8742915",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/f87bdbf50ff9eab4155dadea495a40f2f8742915",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/f87bdbf50ff9eab4155dadea495a40f2f8742915/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "407b8025e84ffa6310409f9e00c0071c58e1b8d8",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/407b8025e84ffa6310409f9e00c0071c58e1b8d8",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/407b8025e84ffa6310409f9e00c0071c58e1b8d8"
+      }
+    ]
+  },
+  {
+    "sha": "407b8025e84ffa6310409f9e00c0071c58e1b8d8",
+    "node_id": "C_kwDOV4usMdoAKDQwN2I4MDI1ZTg0ZmZhNjMxMDQwOWY5ZTAwYzAwNzFjNThlMWI4ZDg",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-24T01:42:01Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-24T01:42:01Z"
+      },
+      "message": "feat(templates): 素材模板随包分发 + 幂等初始化脚本（1.0.62）\n\n## 背景\n\n「事实库」是纯 Markdown，由 parseChecklist 按固定结构解析：\n`## 大分类` / `### 小分类` / `- 条目`，引用块会被跳过。\n格式不对**不报错，只是读不到** —— 这是新人最容易白折腾的地方。\n而仓库里此前**一个模板都没有**。\n\n## 新增\n\n- `templates/事实库/音乐/示例-歌名.md`（8 段结构：基本信息/讲什么/歌词/最喜欢的一段/记得的/为什么喜欢/边界）\n- `templates/事实库/番剧/示例-番剧名.md`\n- `templates/人生清单/示例.md`\n- `templates/黑话本/示例.md`\n- `templates/README.md`：目录对应关系、命名规则、三条注意事项\n  （宁可少写不要编 / 用她自己的口吻 / 「记得的」比「讲什么」更重要）、\n  「让 AI 代填」的用法、怎么校验生效\n- `scripts/init-templates.mjs`：把模板铺到 `人格/_模板/`\n\n## 两个设计决定\n\n1. **不铺进事实库**：扫描范围是 `事实库/<人格>/音乐|番剧|书|游戏/`，\n   模板落进去会被当成「她真的喜欢这首歌」读进人格记忆。\n   `_模板/` 不在扫描范围内，纯参考。\n2. **幂等**：默认跳过已存在文件（`--force` 才覆盖），`--dry-run` 可先看。\n\n## 验证\n\n- 生产环境实跑：5 个文件落地到 `Bot/人格/_模板/`\n- 再跑一次：复制 0 / 跳过 5（幂等 ✓）\n- `check-syntax` 通过",
+      "tree": {
+        "sha": "56c843fc16a737d35e53ed0a2e74b1010d2848e2",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/56c843fc16a737d35e53ed0a2e74b1010d2848e2"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/407b8025e84ffa6310409f9e00c0071c58e1b8d8",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/407b8025e84ffa6310409f9e00c0071c58e1b8d8",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/407b8025e84ffa6310409f9e00c0071c58e1b8d8",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/407b8025e84ffa6310409f9e00c0071c58e1b8d8/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "6f31e0c3b4af9d5e008f4a97dc5234f4debf26d4",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/6f31e0c3b4af9d5e008f4a97dc5234f4debf26d4",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/6f31e0c3b4af9d5e008f4a97dc5234f4debf26d4"
+      }
+    ]
+  },
+  {
+    "sha": "6f31e0c3b4af9d5e008f4a97dc5234f4debf26d4",
+    "node_id": "C_kwDOV4usMdoAKDZmMzFlMGMzYjRhZjlkNWUwMDhmNGE5N2RjNTIzNGY0ZGViZjI2ZDQ",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-24T01:03:52Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-24T01:03:52Z"
+      },
+      "message": "fix(persona): 人格解析统一为一条链 + 修 4 个跨群/别名缺陷（1.0.61）\n\n## 架构调整（起因）\n\n「取当前人格」原来有三套入口：persona-path（归一化+分群）、shop（分群不归一化）、\nbirthday（归一化不分群）。三套各写各的，缺陷就从差异里长出来。\n\n现在 persona-store 提供唯一解析入口：\n- resolvePersonaName(raw)：位号(1/2) → 精确名 → 别名 → 空串（显式\"解析不到\"）\n- normalizePersonaName(raw)：在其上加历史契约（解析不到回落默认）\n- aliasIndex()/readAliases()：读 人格/persona-aliases.json\n\n## 修的 4 个缺陷\n\n1) P1 别名指向非默认人格时静默变默认\n   normalize 只认精确名，别名走最后一行 return def；\n   persona-switch 的 refresh 还会把结果写回状态 ⇒ 群的选择被永久覆盖。\n   实测 normalize(\"阿乙\") → \"甲人格\"（应为\"乙人格\"）。\n   → 别名并入解析链；refresh 改用 resolvePersonaName，解析不到保留原值不写回。\n\n2) P1 生日祝福用全局默认人格，不分群\n   selfName 在遍历所有群的循环外取一次 defaultPersona() ⇒ 群切到 X 后\n   判不出「她自己生日」，文案用错名字。→ 改 personaNameOfGroup(gid) 按群取。\n\n3) P2 overlay 把默认人格名写回状态（已发生）\n   无条件 gs.persona = selected || def.name，使「空=未设置、跟随默认」失效。\n   实测生产 8 个群全被钉成爱莉希雅，其中 3 个从没切换过。\n   → 只由显式切换写 gs.persona；overlay 仅记录 injectedPersona/injectedSessionId。\n   实测：改默认人格后未显式切换的群自动跟随。\n\n4) P2 事实库回落跨人格\n   resolveDataDir 找不到 事实库/<人格>/ 就无条件回落 事实库/，\n   正是模块头注释说要修的 bug。→ 回落前检查全局目录是否真有内容 + warn 一次。\n\n5) P3 小店读人格不归一化 → 过 normalizePersonaName。\n\n## 不做\n\n人格切换保持开放（任何群友可切）——这是最初的设计，不是权限漏洞，未加 isOwner。\n\n## 验证\n\n- 解析：别名/精确名/位号/未知/空 六种输入符合预期\n- 跟随默认：改 persona-config 的 defaultPersona → 未显式设置的群自动跟随 ✅\n- 别名：状态写「阿乙」→ 解析出「乙人格」✅\n- 回落守卫：全局空→指向人格子目录；全局有旧文件→回落并 warn ✅\n- 测试：mock-roam-core 74 / load 103 / safemod 11 / integration 94 全过",
+      "tree": {
+        "sha": "7033491b593002e2d6e1ac989fb695401cb79e3e",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/7033491b593002e2d6e1ac989fb695401cb79e3e"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/6f31e0c3b4af9d5e008f4a97dc5234f4debf26d4",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/6f31e0c3b4af9d5e008f4a97dc5234f4debf26d4",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/6f31e0c3b4af9d5e008f4a97dc5234f4debf26d4",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/6f31e0c3b4af9d5e008f4a97dc5234f4debf26d4/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "f959a1601ef1d7ceb9dc405c3579752cab76fe93",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/f959a1601ef1d7ceb9dc405c3579752cab76fe93",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/f959a1601ef1d7ceb9dc405c3579752cab76fe93"
+      }
+    ]
+  },
+  {
+    "sha": "f959a1601ef1d7ceb9dc405c3579752cab76fe93",
+    "node_id": "C_kwDOV4usMdoAKGY5NTlhMTYwMWVmMWQ3Y2ViOWRjNDA1YzM1Nzk3NTJjYWI3NmZlOTM",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-24T00:33:04Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-24T00:33:04Z"
+      },
+      "message": "fix(persona): 兜底人格不再写死使用者角色名 + 发布 1.0.60\n\n## 问题\n\nlib/io/persona-store.mjs 的 readConfig() 在缺少 persona-config.json 时\n兜底返回 defaultPersona: '爱莉希雅'（2026-11-02 的历史默认值）。\n\n两层后果：\n1. 功能：全新环境会「凭空存在一个人格」，使 botplay/persona-switch.mjs 里\n   已经写好的保护\n   永远不触发 —— 点刷新会继续往下走到 composePrompt，用别的原因误导用户。\n2. 开源：把使用者的角色名硬编码进发布代码。\n\n## 修法\n\n两处兜底改为空串（配置缺失 → ''；catch 分支 → ''）。\n调用方本来就是显式降级的：\n- defaultPersona() 已经 filter(valid) 后返回 null\n- persona-switch 的守卫按 defaultPersona 判空\n- shop 里 P.defaultPersona(...)?.name || '' 也安全\n\n## 验证（用发布版代码 + 空工作区）\n\n- 空环境：readConfig().defaultPersona === ''，defaultPersona() === null，listPersonaChoices() === []\n- 点刷新：正确返回「刷新失败：角色卡目录里没有可用人格」\n- 有卡有规则：composePrompt ✅ 1865 字符 / 人格=小忆\n- 回归：小店 ensure 生成 4 个商品并落盘；事实库 listFacts/findFact 按 事实库/<人格>/{音乐,番剧} 正确读取",
+      "tree": {
+        "sha": "56604c3ab80d223e2c3377ee254177f8889ce523",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/56604c3ab80d223e2c3377ee254177f8889ce523"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/f959a1601ef1d7ceb9dc405c3579752cab76fe93",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/f959a1601ef1d7ceb9dc405c3579752cab76fe93",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/f959a1601ef1d7ceb9dc405c3579752cab76fe93",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/f959a1601ef1d7ceb9dc405c3579752cab76fe93/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "afc019cdee968fe78448de95f3f52e45f0226af2",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/afc019cdee968fe78448de95f3f52e45f0226af2",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/afc019cdee968fe78448de95f3f52e45f0226af2"
+      }
+    ]
+  },
+  {
+    "sha": "afc019cdee968fe78448de95f3f52e45f0226af2",
+    "node_id": "C_kwDOV4usMdoAKGFmYzAxOWNkZWU5NjhmZTc4NDQ4ZGU5NWYzZjUyZTQ1ZjAyMjZhZjI",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T14:19:29Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T14:19:29Z"
+      },
+      "message": "chore(release): 1.0.59 — 插件版本兼容上限检查",
+      "tree": {
+        "sha": "7cdb596ddfd3baa4bbbb8635aa619d2b49e6c4ce",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/7cdb596ddfd3baa4bbbb8635aa619d2b49e6c4ce"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/afc019cdee968fe78448de95f3f52e45f0226af2",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/afc019cdee968fe78448de95f3f52e45f0226af2",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/afc019cdee968fe78448de95f3f52e45f0226af2",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/afc019cdee968fe78448de95f3f52e45f0226af2/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "1e0737e20189a6a46559a855741d1f7c1447a29d",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/1e0737e20189a6a46559a855741d1f7c1447a29d",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/1e0737e20189a6a46559a855741d1f7c1447a29d"
+      }
+    ]
+  },
+  {
+    "sha": "1e0737e20189a6a46559a855741d1f7c1447a29d",
+    "node_id": "C_kwDOV4usMdoAKDFlMDczN2UyMDE4OWE2YTQ2NTU5YTg1NTc0MWQxZjdjMTQ0N2EyOWQ",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T14:19:22Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T14:19:22Z"
+      },
+      "message": "feat: 插件版本兼容上限检查（上游只有下限，上限我们自己补）\n\n## 背景（实测，不是假设）\n\n上游 @zaofan/dsh-qqbot 的扩展包清单**只有 minPluginVersion（下限）**，\n没有任何上限机制，而且它只在设置面板标红，**加载器根本不校验**。\n\n而真实风险是**向上不兼容**。diff 1.13.20 → 1.13.23 的结果：\n\n| 上游改动 | 对本包的影响 |\n|---|---|\n| 改了本包打过补丁的 4 个 dist 文件（tool-presenter / face-tags / botplay / session） | 补丁冲突，相关功能静默失效 |\n| outboundLastCtxFallback 默认改为 false（拒发） | outbound/60-split-bubbles 里不传 target 的 ctx.send() 全部失败 ⇒ 多段回复只有第一段能发出去 |\n| 新增 sessionKindHint / toolErrorMode 等 6 个字段 | 无害（additive、有默认值） |\n\n契约文件本身（ext-inbound / ext-hooks / ext-capabilities / extension-store /\next-tool-interaction / middleware-setup）1.13.20→1.13.23 **全部未变**，这点是好消息。\n\n## 改动\n\n- 新增 lib/pure/version.mjs：parseVersion / compareVersion / versionAtLeast / checkPluginCompat\n  五档判定：ok / untested / too-new / too-old / unknown\n- qqbot-pack.json 声明三条：\n  · minPluginVersion 1.11.42（沿用，上游读）\n  · testedWithPlugin 1.13.20（本包验证过的，自定字段）\n  · maxPluginVersion 1.13.20（允许上限，验证新版后手工放宽）\n- hooks/zz-version-guard.mjs：接入兼容检查，超范围**只告警不阻断**\n  （阻断会让用户升级上游后连机器人都起不来，比降级更糟），\n  并把 compat 对象写进 version-guard.json\n- scripts/doctor.mjs：输出插件版本 + 兼容结论 + 声明范围 + 文件位置\n- 顺手把 versionAtLeast 从 hook 里挪进 lib/pure/version.mjs（去掉重复实现）\n\n## 验证\n\n- checkPluginCompat 六种输入全部符合预期（含 1.13.20-rc.1 视为等于 1.13.20）\n- 真机 doctor：插件 1.13.20 ✅「与本包验证版本一致」\n- 全量回归 8/8 通过（含 safemod 的 lib 同步检查）",
+      "tree": {
+        "sha": "7882f8150dcede733ef93e063f1b18b82aa3039f",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/7882f8150dcede733ef93e063f1b18b82aa3039f"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/1e0737e20189a6a46559a855741d1f7c1447a29d",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/1e0737e20189a6a46559a855741d1f7c1447a29d",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/1e0737e20189a6a46559a855741d1f7c1447a29d",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/1e0737e20189a6a46559a855741d1f7c1447a29d/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "fa74287c3ce0ca8322590e78df2cb2a92e76ef94",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/fa74287c3ce0ca8322590e78df2cb2a92e76ef94",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/fa74287c3ce0ca8322590e78df2cb2a92e76ef94"
+      }
+    ]
+  },
+  {
+    "sha": "fa74287c3ce0ca8322590e78df2cb2a92e76ef94",
+    "node_id": "C_kwDOV4usMdoAKGZhNzQyODdjM2NlMGNhODMyMjU5MGU3OGRmMmNiMmE5MmU3NmVmOTQ",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T14:13:20Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T14:13:20Z"
+      },
+      "message": "chore(release): 1.0.58 — 开源上架版\n\n- qqbot-pack.json: 1.0.57 → 1.0.58\n- CHANGELOG: 记录本轮开源改动（docs/THIRD-PARTY/三个脚本/元信息）\n- 重点记录修复：.gitignore 的 node_modules/ 与 dist/ 规则误把点歌解码器的\n  WASM 主文件和 28 个运行时依赖一起忽略，导致克隆后 MP3 解码不可用\n- 明确说明：本轮零行为变更，只改注释/示例 + 增文档脚本",
+      "tree": {
+        "sha": "3502dd80161e24b7d39c5434035c188d9325ccb7",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/3502dd80161e24b7d39c5434035c188d9325ccb7"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/fa74287c3ce0ca8322590e78df2cb2a92e76ef94",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/fa74287c3ce0ca8322590e78df2cb2a92e76ef94",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/fa74287c3ce0ca8322590e78df2cb2a92e76ef94",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/fa74287c3ce0ca8322590e78df2cb2a92e76ef94/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "8d94957739e1d1ed24d6e8babbf593044c4531ad",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/8d94957739e1d1ed24d6e8babbf593044c4531ad",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/8d94957739e1d1ed24d6e8babbf593044c4531ad"
+      }
+    ]
+  },
+  {
+    "sha": "8d94957739e1d1ed24d6e8babbf593044c4531ad",
+    "node_id": "C_kwDOV4usMdoAKDhkOTQ5NTc3MzllMWQxZWQyNGQ2ZThiYWJiZjU5MzA0NGM0NTMxYWQ",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T13:24:53Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T13:24:53Z"
+      },
+      "message": "docs+fix: 补 docs/ 与第三方许可；修复 vendor 依赖被 .gitignore 误排除\n\n新增文档\n- docs/架构说明.md     一条消息从入站到出站经过哪些层、三个关键挂点、六个扩展点位置\n- docs/扩展点速查.md   六套扩展点的导出形态/能力/真实坑（含 inbound 只认 onInbound 等）\n- docs/排障手册.md     症状→查哪里、日志位置表、静默跳过排查、平台侧报错\n- THIRD-PARTY-NOTICES.md  内置组件许可汇总：MIT(Ethan Halsall) / Apache-2.0 / zlib(Mark Adler puff)\n\n修复（重要）\n- .gitignore 的 node_modules/ 与 dist/ 把 vendor 里**必需**的文件也忽略了：\n  · lib/song/vendor/mp3dec/mpg123-decoder/dist/     ← WASM 解码器主文件\n  · lib/song/vendor/mp3dec/node_modules/            ← 28 个运行时依赖\n  后果：别人克隆下来点歌的 MP3 解码直接不可用。\n  已加例外段（!lib/song/vendor/**），这批文件现在会随仓库分发。\n\n补齐\n- mpg123-decoder / @wasm-audio-decoders/common 补充 LICENSE 原文（上游包未带）\n- package.json 的 files 增加 docs/ 与 THIRD-PARTY-NOTICES.md\n- README 顶部加文档索引",
+      "tree": {
+        "sha": "c04af8780a25b33f88f87532439f4c9087067a1a",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/c04af8780a25b33f88f87532439f4c9087067a1a"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/8d94957739e1d1ed24d6e8babbf593044c4531ad",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/8d94957739e1d1ed24d6e8babbf593044c4531ad",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/8d94957739e1d1ed24d6e8babbf593044c4531ad",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/8d94957739e1d1ed24d6e8babbf593044c4531ad/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "d1ff369a1ab09bb0f62fbcccbc01c048e46e9786",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/d1ff369a1ab09bb0f62fbcccbc01c048e46e9786",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/d1ff369a1ab09bb0f62fbcccbc01c048e46e9786"
+      }
+    ]
+  },
+  {
+    "sha": "d1ff369a1ab09bb0f62fbcccbc01c048e46e9786",
+    "node_id": "C_kwDOV4usMdoAKGQxZmYzNjlhMWFiMDliYjBmNjJmYmNjY2JjMDFjMDQ4ZTQ2ZTk3ODY",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T13:16:19Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T13:16:19Z"
+      },
+      "message": "docs+feat: 补全安装/路径/自检文档 + 新增 doctor 与包内 sync-botplay\n\n文档\n- README 开头声明「这是扩展包，不是插件本体，需先装 @zaofan/dsh-qqbot」\n- 重写 botplay 章节：去掉已废弃的「dist 补丁」说法，改为启动自动复制同步\n- 补「首次运行自动建目录」的分级表（必需/子系统/可选素材各自行为）\n- 更新过时的文件计数（21 命令 / 22 hooks / 15 inbound / 10 outbound / 17 tools / 116 lib）\n- 说明常见误解：EXT_KINDS 里有 botplay ≠ 真被支持\n\n新增脚本（克隆即可用，自包含）\n- scripts/doctor.mjs        环境自检：路径解析结果 / 目录缺什么 / 缺了会怎样\n                            --fix 建必需目录、--json 机器可读\n- scripts/sync-botplay.mjs  botplay 运行时副本同步 CLI（薄封装 lib/pure/botplay-sync.mjs）\n                            修正 README 里引用了包内不存在脚本的问题\n\npackage.json\n- scripts 增加 doctor / doctor:fix / sync:botplay，去掉指向仓库外的路径",
+      "tree": {
+        "sha": "9679586095318888321c9db01f09dbfd1fba56d8",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/9679586095318888321c9db01f09dbfd1fba56d8"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/d1ff369a1ab09bb0f62fbcccbc01c048e46e9786",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/d1ff369a1ab09bb0f62fbcccbc01c048e46e9786",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/d1ff369a1ab09bb0f62fbcccbc01c048e46e9786",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/d1ff369a1ab09bb0f62fbcccbc01c048e46e9786/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "b252fb5775176b89ea92bf165d13875215c63afc",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/b252fb5775176b89ea92bf165d13875215c63afc",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/b252fb5775176b89ea92bf165d13875215c63afc"
+      }
+    ]
+  },
+  {
+    "sha": "b252fb5775176b89ea92bf165d13875215c63afc",
+    "node_id": "C_kwDOV4usMdoAKGIyNTJmYjU3NzUxNzZiODllYTkyYmYxNjVkMTM4NzUyMTVjNjNhZmM",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T13:05:09Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T13:05:09Z"
+      },
+      "message": "fix: 回滚误改的运行时兜底路径 + 修正文档措辞\n\n- 回滚：/data/data/com.dsharnessmobile.shell 是 DSH Android App 的固定安装路径，\n  代码里作为 HOME 兜底使用，不是作者环境路径，不能替换成占位符（否则兜底目录不存在）\n- CONTRIBUTING.md: 硬编码路径检查命令改为通用 pattern\n- pack-paths.mjs / wake-lottery/README.md: 示例路径措辞修正",
+      "tree": {
+        "sha": "e24fb5ab03c4b3407afe6cbe18188337bf655162",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/e24fb5ab03c4b3407afe6cbe18188337bf655162"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/b252fb5775176b89ea92bf165d13875215c63afc",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/b252fb5775176b89ea92bf165d13875215c63afc",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/b252fb5775176b89ea92bf165d13875215c63afc",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/b252fb5775176b89ea92bf165d13875215c63afc/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "5fa1f7a4c57910f3e062ee4e335f4f0a20ca9e92",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/5fa1f7a4c57910f3e062ee4e335f4f0a20ca9e92",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/5fa1f7a4c57910f3e062ee4e335f4f0a20ca9e92"
+      }
+    ]
+  },
+  {
+    "sha": "5fa1f7a4c57910f3e062ee4e335f4f0a20ca9e92",
+    "node_id": "C_kwDOV4usMdoAKDVmYTFmN2E0YzU3OTEwZjNlMDYyZWU0ZTMzNWY0ZjBhMjBjYTllOTI",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T13:03:50Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T13:03:50Z"
+      },
+      "message": "chore: 补全元信息 + 开源前脱敏\n\n- package.json: 版本同步 1.0.57、描述去个人化、补 repository/homepage/bugs\n- package.json: scripts 去掉指向仓库外的路径，改为自带 scripts/check-syntax.mjs\n- qqbot-pack.json: 补 repository/homepage\n- 脱敏：注释里的真实群名/群友昵称（memoir/stats、overlay/detect、trigger-force-wake 等）\n- 脱敏：注释里的作者环境绝对路径 → {WORKSPACE_ROOT}\n- 新增 scripts/check-syntax.mjs（克隆即可自检；规避 Android 上 process.execPath=linker64 的坑）",
+      "tree": {
+        "sha": "4f3bc0790fb111b065054616f689c1ff2b51dc37",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/4f3bc0790fb111b065054616f689c1ff2b51dc37"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/5fa1f7a4c57910f3e062ee4e335f4f0a20ca9e92",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/5fa1f7a4c57910f3e062ee4e335f4f0a20ca9e92",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/5fa1f7a4c57910f3e062ee4e335f4f0a20ca9e92",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/5fa1f7a4c57910f3e062ee4e335f4f0a20ca9e92/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "285a542b47f06fe1e2775c03fedfdf4823d2a690",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/285a542b47f06fe1e2775c03fedfdf4823d2a690",
+        "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/285a542b47f06fe1e2775c03fedfdf4823d2a690"
+      }
+    ]
+  },
+  {
+    "sha": "285a542b47f06fe1e2775c03fedfdf4823d2a690",
+    "node_id": "C_kwDOV4usMdoAKDI4NWE1NDJiNDdmMDZmZTFlMjc3NWMwM2ZlZGZkZjQ4MjNkMmE2OTA",
+    "commit": {
+      "author": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T13:02:16Z"
+      },
+      "committer": {
+        "name": "Bnnforce",
+        "email": "Bnnforce@users.noreply.github.com",
+        "date": "2026-11-23T13:02:16Z"
+      },
+      "message": "feat: R5.9 扩展包首次开源\n\nDSH QQBot 群聊扩展包（bnn-custom 1.0.57）。\n\n包含：\n- 6 套扩展点实现（inbound / outbound / hooks / commands / tools / botplay）\n- 积分经济、小店、点歌、语音合成、卡片交互、人格切换、隐私保护\n- 202 个 .mjs，零硬编码路径（全部走 lib/pack-paths.mjs 推导）\n\n原则：代码开源，素材私有。\n曲库 / 原声 / 美图 / 人格卡全文 / 语音模型 均不在本仓库内，\n相关功能在素材缺失时优雅降级。\n\n已知限制见 README「已知限制」。",
+      "tree": {
+        "sha": "df9b6f8ec369bd962c5f0eed50513051442b67a4",
+        "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/trees/df9b6f8ec369bd962c5f0eed50513051442b67a4"
+      },
+      "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/git/commits/285a542b47f06fe1e2775c03fedfdf4823d2a690",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/285a542b47f06fe1e2775c03fedfdf4823d2a690",
+    "html_url": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom/commit/285a542b47f06fe1e2775c03fedfdf4823d2a690",
+    "comments_url": "https://api.github.com/repos/Bnnforce/dsh-qqbot-bnn-custom/commits/285a542b47f06fe1e2775c03fedfdf4823d2a690/comments",
+    "author": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "Bnnforce",
+      "id": 282897392,
+      "node_id": "U_kgDOENyr8A",
+      "avatar_url": "https://avatars.githubusercontent.com/u/282897392?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Bnnforce",
+      "html_url": "https://github.com/Bnnforce",
+      "followers_url": "https://api.github.com/users/Bnnforce/followers",
+      "following_url": "https://api.github.com/users/Bnnforce/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Bnnforce/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Bnnforce/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Bnnforce/subscriptions",
+      "organizations_url": "https://api.github.com/users/Bnnforce/orgs",
+      "repos_url": "https://api.github.com/users/Bnnforce/repos",
+      "events_url": "https://api.github.com/users/Bnnforce/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Bnnforce/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+
+    ]
+  }
+]
