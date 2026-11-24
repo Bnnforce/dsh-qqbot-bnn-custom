@@ -17,6 +17,21 @@
 
 ## [Unreleased]
 
+## [1.0.60] - 2026-11-24
+
+### Fixed
+
+- **人格切换在全新环境下失效**：`lib/io/persona-store.mjs` 的 `readConfig()` 把兜底默认人格写死成 `‘爱莉希雅’`
+  （2026-11-02 的历史默认值）。后果有两层：
+  ① 全新环境没有 `persona-config.json` 时，它返回一个**并不存在**的人格名，
+     使 `botplay/persona-switch.mjs` 的「角色卡目录里没有可用人格」保护**永远不触发**，
+     点刷新会走到 `composePrompt` 再用失败原因误导用户；
+  ② 把使用者的角色名硬编码进了开源代码。
+
+  现在改为 `配置 → 空串`，由 `defaultPersona()` / `scanPersonaFolder()` 的调用方显式降级。
+  实测：空环境 `readConfig().defaultPersona === ‘’`、`defaultPersona() === null`、
+  点刷新正确返回「刷新失败：角色卡目录里没有可用人格」。
+
 ## [1.0.59] - 2026-11-23
 
 ### Added
