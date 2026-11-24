@@ -24,6 +24,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { EXT_DATA } from '../lib/pack-paths.mjs';
 import { maskFaces } from '../lib/pure/face-safe.mjs';
 
@@ -256,15 +257,44 @@ export default async function onOutbound(ctx, next) {
 
     const [first, ...rest] = bubbles;
     try { ctx.rewrite(first); } catch { return next(); }
-
     // ★ 2026-11-14：真正拆了才记窗口 —— 上面"不拆/合并"的分支不占窗口，
     //   否则同回合第一段太短没拆、第二段够长该拆时会被自己挡掉。
     rememberSplit(dedupeKey, nowMs);
 
     // 其余气泡：后台按随机延迟依次发；第一条照常走完整出站链（@、引用、脱敏都还在）
+    //
+    // ⚠️⚠️ 2026-11-24 重要修正：后续气泡走 `ctx.send()`，而它**不经过出站扩展链**
+    //    （上游 ext-outbound 的 send 直接调 sendViaOutboundChannel）。
+    //    后果：40-strip-tool-leaks / 42-strip-error-leaks / 45-privacy-guard /
+    //          99-final-leak-check 全部**对后续气泡失效**。
+    //    真实风险：今天群里泄漏的 "`FsError: FS_NOT_FOUND`" 如果被拆到第二段，
+    //    就会绕过所有拦截直接发出去。
+    //    ⇒ 所以**在这里补一次清理**：拆之前把每个气泡都过一遍泄漏检查。
+    let safeRest = rest;
+    try {
+      // ⚠️ 用 import.meta.url 解析同级文件：相对 './x.mjs' 在扩展被
+      //    动态装载时可能解析失败（上游用绝对路径 import，base 不一定是我们这层）。
+      const leakMod = await import(pathToFileURL(join(import.meta.dirname ?? new URL('.', import.meta.url).pathname, '99-final-leak-check.mjs')).href);
+      const { finalLeakCheck } = leakMod;
+      safeRest = rest
+        .map((b) => String(b ?? ''))
+        .map((b) => finalLeakCheck(b).text)
+        .filter((b) => b && b.trim());
+      // 全被清光 ⇒ 不发（否则会发空消息）
+      if (!safeRest.length) {
+        try { ctx.note?.('后续气泡全是内部信息，已全部拦截'); } catch { /* ignore */ }
+        return next();
+      }
+    } catch {
+      // 清理模块加载失败 ⇒ 保守起见**不拆了**，只发第一段
+      // （宁可少一段，也不能把没清过的内容发出去）
+      try { ctx.note?.('泄漏清理模块不可用，本次不拆分'); } catch { /* ignore */ }
+      return next();
+    }
+
     try {
       ctx.background?.(async () => {
-        for (const bubble of rest) {
+        for (const bubble of safeRest) {
           await new Promise((r) => setTimeout(r, randomDelay(cfg)));
           try { await ctx.send(bubble); } catch { /* 单条失败不影响后续 */ }
         }
