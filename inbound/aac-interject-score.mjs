@@ -56,6 +56,10 @@ const DEFAULTS = {
   noveltyWindow: 10,
   /** 她参与过的话题词缓存上限。 */
   maxTopicWords: 40,
+  /** ★ 2026-11-24 R6.4：情绪是否参与接话决策（默认关）。 */
+  moodBiasEnabled: false,
+  /** 情绪微调幅度上限（±0.1，绝不压过被@必回）。 */
+  moodBiasMax: 0.1,
 };
 
 function readJson(p, fb) {
@@ -102,6 +106,68 @@ export function topicWords(text) {
 }
 
 /**
+ * ★ 2026-11-24 R6.4：情绪偏移（纯函数）。
+ *
+ * 把她的当前情绪折算成一个接话意愿偏移，范围 [-moodBiasMax, +moodBiasMax]。
+ *
+ * 维度映射（都来自 mood 八维，值域 0~1，中性 0.5）：
+ *   energy 低（累）        → 负偏移（不想接话）
+ *   connection 高（想说话） → 正偏移
+ *   patience 低（没耐心）   → 负偏移
+ *   mood 高（心情好）       → 小幅正偏移
+ *
+ * 安全边界：只做**微调**，绝不压过"被@必回"（那条在打分之前短路）。
+ *
+ * @param {object|null} mood {energy, connection, patience, mood}
+ * @param {number} max
+ * @returns {number} 偏移量，[-max, +max]
+ */
+export function moodBias(mood, max = 0.1) {
+  if (!mood || typeof mood !== 'object') return 0;
+  const m = Math.max(0, Math.min(0.5, Number(max) || 0.1));
+  const n = (v) => {
+    const x = Number(v);
+    return Number.isFinite(x) ? x : 0.5;
+  };
+  const energy = n(mood.energy);
+  const connection = n(mood.connection);
+  const patience = n(mood.patience);
+  const moodV = n(mood.mood);
+
+  // 各维度相对中性的偏移，乘系数后叠加，最后 clamp 到 [-m, +m]
+  let bias = 0;
+  bias += (energy - 0.5) * 0.4;        // 累 → 不想说
+  bias += (connection - 0.5) * 0.4;    // 想说话 → 想接
+  bias += (patience - 0.5) * 0.3;      // 没耐心 → 不想说
+  bias += (moodV - 0.5) * 0.2;         // 心情好 → 想接
+  return Math.max(-m, Math.min(m, bias));
+}
+
+/**
+ * ★ 2026-11-24 R6.4：读她当前的八维情绪（跨体系，直接读文件）。
+ *
+ * 插件 dsh-bnnbotbox 把情绪状态写到 `{DSH_HOME}/data/dsh-anti-ai-persona/state/mood-axes.json`。
+ * 扩展包与插件是两套加载体系不能互相 import，这里按既有约定（slang-inline / trim-agent-tools
+ * 同款路径）直接读文件。
+ *
+ * 只读一次、失败静默返回 null（调用方会当"无情绪"处理，偏移为 0）。
+ */
+function readMood() {
+  try {
+    // ⚠️ DSH_HOME 已含 `.dsh`；fallback 到 homedir() 时才拼 `.dsh`
+    const home = process.env.DSH_HOME || process.env.HOME || '/data/data/com.dsharnessmobile.shell/files/home';
+    const p = process.env.DSH_HOME
+      ? join(home, 'data', 'dsh-anti-ai-persona', 'state', 'mood-axes.json')
+      : join(home, '.dsh', 'data', 'dsh-anti-ai-persona', 'state', 'mood-axes.json');
+    if (!existsSync(p)) return null;
+    const j = JSON.parse(readFileSync(p, 'utf8'));
+    return j && typeof j === 'object' ? j : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * 打分（纯函数，好测）。
  *
  * @param {object} input
@@ -109,8 +175,9 @@ export function topicWords(text) {
  * @param {string[]} [input.recent]   最近 N 条群消息
  * @param {string[]} [input.herWords] 她最近说过的内容
  * @param {string[]} [input.names]    她的名字/别名
+ * @param {object|null} [input.mood]  ★ R6.4：当前情绪（{energy,connection,patience,mood}）
  * @param {object} [cfg]
- * @returns {{ score:number, dims:object, decision:string }}
+ * @returns {{ score:number, dims:object, decision:string, moodBias:number }}
  */
 export function score(input, cfgIn = DEFAULTS) {
   // ⚠️ 2026-11-24 修（实测抓到）：原来 `cfg = DEFAULTS` 只在**参数省略**时生效。
@@ -154,11 +221,18 @@ export function score(input, cfgIn = DEFAULTS) {
   }
 
   const dims = { ask, mention, topic, novelty };
-  const scoreV =
+  const baseScore =
     ask * (Number(cfg.wAsk) || 0) +
     mention * (Number(cfg.wMention) || 0) +
     topic * (Number(cfg.wTopic) || 0) +
     novelty * (Number(cfg.wNovelty) || 0);
+
+  // ★ R6.4：情绪偏移（默认关；关时偏移为 0，行为与改动前逐字节一致）
+  const bias = cfg.moodBiasEnabled === true
+    ? moodBias(input?.mood, cfg.moodBiasMax)
+    : 0;
+
+  const scoreV = Math.max(0, Math.min(1, baseScore + bias));
 
   // 阈值允许 0（=全部唤醒）：不能用 || ，0 会被当成假值退回 0.5
   const th = Number(cfg.threshold);
@@ -167,6 +241,7 @@ export function score(input, cfgIn = DEFAULTS) {
     score: Math.round(scoreV * 1000) / 1000,
     dims,
     decision: scoreV >= threshold ? 'wake' : 'silent',
+    moodBias: Math.round(bias * 1000) / 1000,
   };
 }
 
@@ -214,7 +289,13 @@ export async function onInbound(ctx, next) {
     const m = state();
     const bucket = m.get(gid) ?? { recent: [], her: [] };
     const r = score(
-      { text, recent: bucket.recent, herWords: bucket.her },
+      {
+        text,
+        recent: bucket.recent,
+        herWords: bucket.her,
+        // ★ R6.4：情绪只用于接话决策（不注入正文），且只在 moodBiasEnabled=true 时读
+        mood: cfg.moodBiasEnabled === true ? readMood() : null,
+      },
       cfg,
     );
 
