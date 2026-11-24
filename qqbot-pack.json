@@ -1,7 +1,7 @@
 {
   "name": "爱莉希雅自定义扩展",
   "author": "Bnnforce",
-  "version": "1.0.62",
+  "version": "1.0.63",
   "description": "群聊玩法扩展：积分经济、小店、点歌（本地曲库）、语音合成、卡片交互、人格切换、隐私保护",
   "homepage": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom",
   "tags": [
@@ -14,7 +14,7 @@
     "积分",
     "玩法"
   ],
-  "minPluginVersion": "1.11.42",
+  "minPluginVersion": "1.13.21",
   "license": "MIT",
   "repository": "https://github.com/Bnnforce/dsh-qqbot-bnn-custom",
   "keywords": [
@@ -25,7 +25,7 @@
     "cards",
     "tts"
   ],
-  "testedWithPlugin": "1.13.20",
-  "maxPluginVersion": "1.13.20",
-  "compatNote": "testedWithPlugin/maxPluginVersion 是本扩展包自定字段（上游不读）。升级 @zaofan/dsh-qqbot 前请读 CHANGELOG 并重打 4 个 dist 补丁，注意 1.13.21+ 把 outboundLastCtxFallback 默认改成拒发（会影响 outbound/60-split-bubbles 的 ctx.send）。验证通过后手动放宽 maxPluginVersion。"
+  "testedWithPlugin": "1.13.25",
+  "maxPluginVersion": "1.13.25",
+  "compatNote": "上游 1.13.25 已合并我们提交的 5 个修复（PR #88）；本地补丁已全部移除，不再需要 dist 补丁。"
 }
