@@ -10,6 +10,7 @@
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, renameSync, unlinkSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { defaultPersona } from '../lib/io/persona-store.mjs';
+import { currentPersonaOf } from '../lib/io/persona-path.mjs';
 import { registerWithFallback } from './zz-central-scheduler.mjs';
 
 const TZ = 'Asia/Shanghai';
@@ -30,8 +31,24 @@ const PENDING_TMP_STALE_MS = 10 * 60 * 1000;
 /** 降级用的原节律（仅当任务中心没接管时生效）。与 tasks.json 的 everyMs 保持一致：5 分钟。 */
 const BIRTHDAY_FALLBACK_MS = 300_000;
 
-/** 当前默认人格名（祝福语气跟随它；2026-11-02 默认人格改为爱莉希雅，不再写死"比安安"）。 */
-function personaName() {
+/**
+ * 取某个群「实际生效的人格名」。
+ *
+ * ★ 2026-11-24 修（P1，真 bug）：
+ *   原来这里只取**全局默认人格** defaultPersona()，然后在遍历所有群的循环外
+ *   算一次 selfName。后果：
+ *   某群已切到「比安安」，而今天是比安安生日 → 代码拿默认人格「爱莉希雅」去比
+ *   ⇒ 判不出「她自己生日」，输出第三人称「祝 XX 生日快乐」；反过来默认人格
+ *   生日时，切了人格的群也会误判成「她自己」。
+ *   现在按群取：群显式人格 → 默认人格。
+ *
+ * @param {string} gid
+ */
+function personaNameOfGroup(gid) {
+  try {
+    const name = currentPersonaOf({ peer: { peerId: String(gid || ''), scope: 'group' } });
+    if (name) return name;
+  } catch { /* 回落默认 */ }
   try { return defaultPersona()?.name || '当前人格'; } catch { return '当前人格'; }
 }
 
@@ -259,8 +276,9 @@ export async function checkAndAnnounce(env, now = new Date()) {
   const results = [];
   let sent = 0;
 
-  const selfName = String(personaName() ?? '').trim();
   for (const gid of groupDirs(root)) {
+    // ★ 按群取人格（不再用循环外的全局默认值）
+    const selfName = String(personaNameOfGroup(gid) ?? '').trim();
     const allPeople = todayBirthdays(root, gid, ymd);
     if (!allPeople.length) continue;
     // ★ 2026-11-05：区分「别人」与「她自己」。

@@ -130,7 +130,21 @@ export async function run(env) {
         text = RESTORE_TEXT;
       }
       if (text) decision.messages.push(overlayMessage(text, selected || def.name));
-      gs.persona = selected || def.name;
+      /**
+       * ★★ 2026-11-24 架构调整（P2）：**不再把解析后的名字写回 gs.persona**。
+       *
+       * 原实现无条件 `gs.persona = selected || def.name`，后果：
+       *   · persona-path.mjs 声明「persona: '' 是未显式设置，要回落默认」，
+       *     但第一回合就被写死成当时的具体名字 ⇒ 该语义失效；
+       *   · 之后改 persona-config.json 的 defaultPersona，这些群**不会跟随**。
+       *   · 实测（2026-11-24）：生产 8 个群全是 '爱莉希雅'，其中 2 个群
+       *     lastSwitchAt 为 '-'（从没被切换过）——都是被这里自动钉上的。
+       *   · 别名/卡被删时同样会被这里覆盖。
+       *
+       * 现在：gs.persona 只由**用户显式切换**写入（botplay/persona-switch.mjs），
+       * 本 hook 只记录注入事实（injectedPersona / injectedSessionId），
+       * 空串语义得以保留 ⇒ 改默认人格时未显式切换的群会自动跟随。
+       */
       gs.needsInjection = false;
       gs.injectedPersona = selected || def.name;
       gs.injectedSessionId = sid;

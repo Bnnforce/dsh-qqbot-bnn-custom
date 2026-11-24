@@ -17,6 +17,57 @@
 
 ## [Unreleased]
 
+## [1.0.61] - 2026-11-24
+
+### Changed（架构统一：人格解析只有一条链）
+
+以前「取当前人格」有三套入口，各写各的：
+
+| 入口 | 归一化 | 分群 |
+|---|---|---|
+| `persona-path.currentPersonaOf(env)` | ✅ | ✅ |
+| `botplay/shop.mjs` 直接读 `groupState().persona` | ❌ | ✅ |
+| `hooks/birthday-auto.mjs` 用 `defaultPersona()` | ✅ | ❌ |
+
+现在 `lib/io/persona-store.mjs` 提供**唯一解析入口**：
+- `resolvePersonaName(raw)` —— 位号(1/2) → 精确名 → **别名** → 空串（显式「解析不到」）
+- `normalizePersonaName(raw)` —— 在其上保留历史契约（解析不到回落默认）
+- `aliasIndex()` / `readAliases()` —— 读 `人格/persona-aliases.json`
+
+### Fixed
+
+1. **别名指向非默认人格时静默变成默认**（P1）
+   `normalizePersonaName` 只认精确名，别名一律走最后一行 `return def`；
+   而 `persona-switch` 的 refresh 分支还会把结果**写回状态** ⇒ 该群的选择被永久覆盖。
+   实测：`normalize("阿乙")` → `"甲人格"`（默认），应为 `"乙人格"`。
+   → 别名已并入解析链；refresh 改用 `resolvePersonaName`，解析不到时**保留原值不写回**。
+
+2. **生日祝福用全局默认人格，不分群**（P1）
+   `selfName` 在遍历所有群的循环外只取一次 `defaultPersona()`。
+   群切到 X 后，自身生日判定与文案仍按默认人格 ⇒ 判不出「她自己生日」。
+   → 改为 `personaNameOfGroup(gid)` 按群取。
+
+3. **overlay 把默认人格名写回状态**（P2，已在生产发生）
+   `persona-group-overlay.mjs` 无条件 `gs.persona = selected || def.name`，
+   使「persona 为空 = 未显式设置、跟随默认」的语义失效。
+   实测生产 8 个群全被钉成 `爱莉希雅`，其中 3 个群从没切换过。
+   → 只由用户显式切换写入 `gs.persona`；overlay 只记录 `injectedPersona/injectedSessionId`。
+   改默认人格后，未显式切换的群会**自动跟随**（实测验证）。
+
+4. **事实库回落跨人格**（P2）
+   `resolveDataDir` 找不到 `事实库/<人格>/` 就无条件回落 `事实库/`，
+   正好复现了本模块文件头注释里说要修的那个 bug。
+   → 回落前检查全局目录是否真有内容（只剩人格子目录则不算），并打一次 warn。
+
+5. **小店读人格不归一化**（P3）
+   `botplay/shop.mjs` 是全仓唯一直接用原文人格名的路径。
+   → 过 `normalizePersonaName`。
+
+### 说明
+
+- 人格切换**有意保持开放**（任何群友都能切）——这是最初的设计，不是权限漏洞，未加 isOwner 校验。
+- 数据迁移：清掉 3 个「从没切换过却被自动钉死」的群的 persona 字段，使其恢复「跟随默认」。
+
 ## [1.0.60] - 2026-11-24
 
 ### Fixed

@@ -64,10 +64,18 @@ function gidOf(ctx) {
 
 /** 当前群人格。 */
 async function personaOf(gid) {
+  // ★ 2026-11-24：状态里的人格名必须过归一化（含别名）再使用。
+  //   原来直接返回原文，是全仓唯一不过 normalizePersonaName 的取人格路径；
+  //   状态里存的是别名/文件名时，小店菜单与文案会按错误名字生成。
   try {
     const S = await switchMod();
     const g = S.groupState(S.loadState(), gid);
-    if (g?.persona) return String(g.persona);
+    const raw = String(g?.persona ?? '').trim();
+    if (raw) {
+      const P0 = await personaMod();
+      const name = P0.normalizePersonaName(raw);
+      if (name) return name;
+    }
   } catch { /* ignore */ }
   try {
     const P = await personaMod();

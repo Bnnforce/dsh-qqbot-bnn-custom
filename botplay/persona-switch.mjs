@@ -1,6 +1,6 @@
 /** 人格切换卡：动态读取 人格/角色卡/*.md，文件名去 .md 作为人格 ID。 */
 import { loadState, saveState, groupState, cooldownLeft, cooldownText, overlayReady } from '../lib/io/persona-switch.mjs';
-import { listPersonaChoices, normalizePersonaName, composePrompt, readConfig, defaultPersona, scanPersonaFolder } from '../lib/io/persona-store.mjs';
+import { listPersonaChoices, normalizePersonaName, resolvePersonaName, composePrompt, readConfig, defaultPersona, scanPersonaFolder } from '../lib/io/persona-store.mjs';
 import { settingsUpdateUrl } from '../lib/dsh-api.mjs';
 
 const SETTINGS_NS = 'im-qqbot-2';
@@ -145,14 +145,35 @@ export default {
       const active = await refreshActivePrompt();
       if (active.ok) {
         const choices = listPersonaChoices(cur.cfg).map((p) => p.name);
-        let selected = normalizePersonaName(cur.gs.persona, cur.cfg);
-        if (!choices.includes(selected)) selected = active.persona;
-        cur.gs.persona = selected;
+        /**
+         * ★ 2026-11-24 修：refresh 以前无条件 normalize 后**写回状态**。
+         *   而 normalize 的契约是「解析不到就回落默认人格」，
+         *   于是状态里存别名（或卡被删）时，点一次刷新就把该群的人格
+         *   **永久改成默认**，且没有任何提示。
+         *   现在：先用 resolvePersonaName 判断能否解析——
+         *     · 解析得到 → 刷新为规范名（正常）
+         *     · 解析不到 → 保留原值不写回，只提示，让主人自己决定
+         */
+        const prevRaw = String(cur.gs.persona || '').trim();
+        const resolved = resolvePersonaName(prevRaw, cur.cfg);
+        let selected;
+        if (!prevRaw) {
+          // 未显式设置（跟随默认）——不要写死，保持空串语义
+          selected = '';
+        } else if (resolved && choices.includes(resolved)) {
+          selected = resolved;
+        } else {
+          // 解析不到：既不写回、也不静默改成默认
+          selected = prevRaw;
+        }
+        if (selected) cur.gs.persona = selected;
+        else delete cur.gs.persona;
         cur.gs.needsInjection = true;
         saveState(cur.state);
-        setCard(ctx, `已重读人格文件夹：规则 ${active.rules} 个，可用角色卡 ${active.validCards} 张，未通过 ${active.invalidCards} 张；当前群 ${selected}；默认 ${active.persona}；${active.len} 字`);
+        const shown = selected || `（跟随默认 ${active.persona}）`;
+        setCard(ctx, `已重读人格文件夹：规则 ${active.rules} 个，可用角色卡 ${active.validCards} 张，未通过 ${active.invalidCards} 张；当前群 ${shown}；默认 ${active.persona}；${active.len} 字`);
         try { ctx.card().dirty = true; } catch { /* ignore */ }
-        return `${at(ctx)}已重读人格文件夹：规则 ${active.rules} 个，可用角色卡 ${active.validCards} 张，当前群 ${selected}，默认 ${active.persona}。`;
+        return `${at(ctx)}已重读人格文件夹：规则 ${active.rules} 个，可用角色卡 ${active.validCards} 张，当前群 ${shown}，默认 ${active.persona}。`;
       }
       return `${at(ctx)}刷新失败：${active.error}`;
     }
