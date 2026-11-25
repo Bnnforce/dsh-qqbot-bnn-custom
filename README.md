@@ -26,6 +26,13 @@
 
 ### 玩法
 
+<p align="center">
+  <img src="docs/screenshots/02-play.jpg" width="42%" alt="~ 玩法 命令：积分与工具说明卡片，含 9 个可点按钮">
+  <img src="docs/screenshots/01-diary.jpg" width="52%" alt="~ 日记 命令：查看她今天的日记">
+</p>
+
+> 左：`/玩法` 一图看清积分和工具，下面 9 个按钮可以直接点。右：`/日记` 每天 22:30 自动写。
+
 | 命令 | 说明 |
 |---|---|
 | `/玩法` | 一张卡片进入全部玩法 |
