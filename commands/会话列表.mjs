@@ -1,5 +1,6 @@
 import { DATA_ROOT as PACK_DATA_ROOT, WORKSPACE_ROOT } from '../lib/pack-paths.mjs';
 import { writeJsonAtomic } from '../lib/pure/atomic.mjs';
+import { svcOf as sharedSvcOf } from '../lib/pure/svc.mjs';
 /**
  * 会话列表.mjs — `/会话列表` 斜杠命令（扩展命令第五套）
  *
@@ -335,24 +336,9 @@ function kernelOf(ctx) {
  *   cordis Context 上的 `ctx` / `caps` 等属性是 **getter**，未 inject 时**读取即抛**。
  *   所以**绝不能**把它们放进数组字面量里"顺手取一下" —— 必须逐个包 try。
  */
+/** 取服务：★ 2026-11-25 收敛到 lib/pure/svc.mjs（保留本地 kernelOf 的 KERNEL 缓存语义）。 */
 function svcOf(ctx, name) {
-  const k = kernelOf(ctx);
-  if (!k) return null;
-  try {
-    if (typeof k.get === 'function') {
-      const v = k.get(name);
-      if (v) return v;
-    }
-  } catch { /* ignore */ }
-  for (const key of ['root', 'ctx', 'caps']) {
-    try {
-      const c = k[key];
-      if (!c) continue;
-      const v = typeof c.get === 'function' ? c.get(name) : c[name];
-      if (v) return v;
-    } catch { /* ignore */ }
-  }
-  return null;
+  return sharedSvcOf(KERNEL ? { kernel: KERNEL } : ctx, name);
 }
 
 /** 会话 id 归一：宿主持久化里带 `session-` 前缀，实时 agent id 不带 —— 两种都留一手 */
