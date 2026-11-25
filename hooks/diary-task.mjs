@@ -145,9 +145,11 @@ export async function checkAndWrite(env, now = new Date()) {
     const events = readGroupEvents(root, gid, date, { maxEvents: 60 });
 
     // 调 LLM 写日记（失败 → 占位）
+    // ★ 2026-11-25 修：svcOf 要的是带 kernel/caps 的服务容器，它在 env.ctx 上，
+    //   不是 env 本身。这里传 env.ctx，llm.mjs 里还有一层下钻兜底。
     let content = null;
     try {
-      content = await generateDiary({ ctx: env, persona, events, meta: { date, timeoutMs: 20_000 } });
+      content = await generateDiary({ ctx: env?.ctx ?? env, persona, events, meta: { date, timeoutMs: 20_000 } });
     } catch { content = null; }
     if (!content || !content.trim()) {
       content = placeholderDiary(persona);
