@@ -17,6 +17,27 @@
 
 ## [Unreleased]
 
+## [1.0.70] - 2026-11-25
+
+### 修复
+- **主动心跳吞话**：拆分气泡后在心跳回合只发出最后一段，第一段凭空消失。
+  现象：模型输出两段 → 群里只有第二段；`msg-history` 无第一段记录，
+  但 dedupe 台账（`recent-replies.json`）记的是**拆分前完整原文**。
+  - 已排除：拆段逻辑本身正确（真实文本可正确拆 2 条）；出站链
+    `45/47/50/55/56/99` 六个 hook 对第一段均放行；`ctx.rewrite(first)` 返回 true。
+  - 未定位：第一段未到达 QQ 的环节。
+  - 处置：**关闭气泡拆分**（`DEFAULT_CONFIG.enabled = false`），整段作为单条发出。
+    恢复方法：`split-bubbles-config.json` 写 `"enabled": true`。
+
+### 变更（开源上架准备）
+- 真实群号 `688E3805` → `AAAA0001`、openid 片段 `8648A8EF` → `XXXXXXXX`（注释脱敏）
+- 删除调试残留 `.c.json`（65KB GitHub API 快照）
+- `package.json` 版本滞后修正（1.0.57 → 1.0.69）+ 补 `author` 字段
+- `qqbot-pack.json` 展示名「爱莉希雅自定义扩展」→「群聊玩法扩展」
+- 新增 `SECURITY.md` / `PRIVACY.md`；`PORTING.md` 补「比安安」历史兼容说明
+- `lib/diary/store.mjs` 移除硬编码绝对路径，复用 `dirs.mjs` 的 `PERSONA_ROOT`
+- README 补 4 张效果截图（`docs/screenshots/`）
+
 ## [1.0.61] - 2026-11-24
 
 ### Changed（架构统一：人格解析只有一条链）

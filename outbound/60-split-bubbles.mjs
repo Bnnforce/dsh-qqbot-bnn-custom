@@ -17,9 +17,9 @@
  *   · 只处理 group / c2c 的 text / markdown；卡片、媒体段、回环调用不动；
  *   · 任何异常都放行原文本，绝不吞消息。
  *
- * 配置：{dataRoot}/.qqbot-extensions/data/split-bubbles-config.json（缺省即启用）
- *   { "enabled": true, "maxBubbles": 3, "delayMin": 800, "delayMax": 1500,
- *     "minTotalLen": 16, "minBubbleLen": 4, "splitOnPunct": true }
+ * 配置：{dataRoot}/.qqbot-extensions/data/split-bubbles-config.json（**缺省关闭**，见下方说明）
+ *   { "enabled": false, "maxBubbles": 3, "delayMin": 800, "delayMax": 1500,
+ *     "minTotalLen": 24, "minBubbleLen": 8, "splitOnPunct": true }
  * 测试可用 QQBOT_SPLIT_DELAY_MIN / QQBOT_SPLIT_DELAY_MAX 覆盖延迟。
  *
  * ⚠️ 2026-11-25 生产已关闭（`enabled: false`）
@@ -51,7 +51,9 @@ const CONFIG_FILE = join(EXT_DATA, 'split-bubbles-config.json');
  *   想调就改 split-bubbles-config.json 的 minTotalLen / minBubbleLen。
  */
 const DEFAULT_CONFIG = {
-  enabled: true,
+  // ★ 2026-11-25：默认关闭。主动心跳回合拆两段时第一段会被吞（详见文件头说明），
+  //   根因未定位前不冒险。想恢复：配置里写 "enabled": true，或直接改这里。
+  enabled: false,
   maxBubbles: 3,
   delayMin: 800,
   delayMax: 1500,
