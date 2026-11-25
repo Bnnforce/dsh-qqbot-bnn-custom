@@ -112,7 +112,7 @@ if (!r.ok) await pts.refund(openid, payRes.paid);
 // <dataRoot>/<openid>.json
 {
   "version": 1,
-  "openid": "8648A8EF...",
+  "openid": "XXXXXXXX...",
   "balance": 42,
   "checkin": { "lastDate": "2026-11-17", "totalDays": 23 },
   "fortune": { "lastDateKey": "2026-11-17", "lastScore": 8 },

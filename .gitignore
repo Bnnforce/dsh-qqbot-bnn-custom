@@ -52,3 +52,6 @@ Thumbs.db
 !lib/song/vendor/**
 !lib/song/vendor/**/dist/
 !lib/song/vendor/**/node_modules/
+
+# 调试残留（GitHub API 快照）
+.c.json

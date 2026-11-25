@@ -358,9 +358,11 @@ import { loadPackage } from '../lib/pure/deps.mjs';
 
 - ✅ 不收集任何用户数据
 - ✅ 所有数据存储在本地
-- ✅ 不发起外部网络请求（除了用户显式配置的服务）
+- ✅ 不发起外部网络请求（除了 QQ / B 站官方接口和你配置的大模型）
 - ✅ 无设备控制、无屏幕读取能力
 - ✅ 群友只能触发玩法，不能修改配置
+
+详细说明见 [SECURITY.md](SECURITY.md) 与 [PRIVACY.md](PRIVACY.md)。
 
 ---
 

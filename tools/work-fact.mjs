@@ -30,7 +30,7 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { PERSONA_ROOT } from '../lib/io/persona-store.mjs';
 // ★ 2026-11-17 统一人格路径（原先直接 join(PERSONA_ROOT,'事实库') 不分人格，
-//   导致群 688E3805 切到比安安后仍在读爱莉的事实库）
+//   导致群 AAAA0001 切到比安安后仍在读爱莉的事实库）
 import { resolveDataDir, currentPersonaOf } from '../lib/io/persona-path.mjs';
 
 /**
