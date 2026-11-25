@@ -21,6 +21,15 @@
  *   { "enabled": true, "maxBubbles": 3, "delayMin": 800, "delayMax": 1500,
  *     "minTotalLen": 16, "minBubbleLen": 4, "splitOnPunct": true }
  * 测试可用 QQBOT_SPLIT_DELAY_MIN / QQBOT_SPLIT_DELAY_MAX 覆盖延迟。
+ *
+ * ⚠️ 2026-11-25 生产已关闭（`enabled: false`）
+ *   现象：主动心跳回合里模型输出两段，群里只发出**最后一段**，第一段凭空消失
+ *        （msg-history 无记录、台账有完整原文）。
+ *   已排查：拆段逻辑本身正确（真实文本复现可拆 2 条）；出站链 45/47/50/55/56/99
+ *        六个 hook 对第一段均放行；dedupe 台账记录的是拆分前完整原文。
+ *   未定位：`ctx.rewrite(first)` 返回 true 但第一段未到达 QQ。
+ *   决定：先关掉拆分，让整段作为单条发出，规避吞话；根因待真机加日志后再修。
+ *   恢复：把 split-bubbles-config.json 的 enabled 改回 true。
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
