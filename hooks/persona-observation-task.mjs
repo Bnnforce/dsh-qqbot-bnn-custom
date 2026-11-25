@@ -38,6 +38,8 @@
 import { readFileSync, writeFileSync, mkdirSync, renameSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { registerWithFallback } from './zz-central-scheduler.mjs';
+import { currentPersonaOf } from '../lib/io/persona-path.mjs';
+import { defaultPersona } from '../lib/io/persona-store.mjs';
 import { buildObservation } from '../lib/persona-observation/build.mjs';
 import { readPairs } from '../lib/pair-relation/store.mjs';
 import { REPORT_ROOT } from '../lib/dirs.mjs';
@@ -84,25 +86,51 @@ function groupDirs(root) {
   } catch { return []; }
 }
 
-/** 读某群最近的 mood-history 快照区间（简单取首尾）。 */
+/**
+ * 读 mood-history 在 [fromMs, toMs] 区间内的全部快照，算首尾对比。
+ *
+ * ★ 2026-11-25 修：
+ *   旧实现只 `pick` 首尾两个文件，且 samples 用的是「目录里全部文件数」，
+ *   导致两个问题：
+ *     ① 区间内只有 1 天数据时，start/end 是同一个文件 ⇒ 所有维度必然「平稳」
+ *     ② samples 显示 6 而实际区间内只有 2 天，误导读者
+ *   现在改为：**按日期字符串筛区间**，首尾从区间内取，samples 是区间内真实天数。
+ */
 function readMoodRange(dshHome, gid, fromMs, toMs) {
-  // mood-history 快照文件在 {DSH_HOME}/data/dsh-anti-ai-persona/state/mood-history/<YYYY-MM-DD>.json
-  // 这里只做「尽力而为」：读得到就用，读不到返回 null，build 里会降级。
   const dir = join(String(dshHome ?? '').trim(), 'data', 'dsh-anti-ai-persona', 'state', 'mood-history');
   try {
-    const files = readdirSync(dir).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
-    if (!files.length) return null;
-    const pick = (target) => {
-      // 找最接近 target 的文件
-      let best = files[0];
-      for (const f of files) if (f <= target) best = f;
-      return best;
+    const fromYmd = ymdOf(fromMs);
+    const toYmd = ymdOf(toMs);
+    const inRange = readdirSync(dir)
+      .filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f))
+      .map((f) => f.replace(/\.json$/, ''))
+      .filter((d) => d >= fromYmd && d <= toYmd)
+      .sort();
+    if (!inRange.length) return null;
+
+    const read = (d) => {
+      try { return JSON.parse(readFileSync(join(dir, `${d}.json`), 'utf8')); } catch { return null; }
     };
-    const startF = pick(fromMs ? ymdOf(fromMs) : files[0]);
-    const endF = pick(toMs ? ymdOf(toMs) : files[files.length - 1]);
-    const read = (f) => { try { return JSON.parse(readFileSync(join(dir, f), 'utf8')); } catch { return null; } };
-    return { start: read(startF), end: read(endF), samples: files.length };
+    const first = read(inRange[0]);
+    const last = read(inRange[inRange.length - 1]);
+    if (!first && !last) return null;
+
+    return {
+      start: first,
+      end: last || first,
+      samples: inRange.length,        // ← 区间内真实天数，不是目录总数
+      days: inRange,                  // 便于诊断
+    };
   } catch { return null; }
+}
+
+/** 按群解析人格名（照抄 diary-task 的已验证写法）。 */
+function personaNameOfGroup(gid) {
+  try {
+    const name = currentPersonaOf({ peer: { peerId: String(gid || ''), scope: 'group' } });
+    if (name) return name;
+  } catch { /* 回落默认 */ }
+  try { return defaultPersona()?.name || '当前人格'; } catch { return '当前人格'; }
 }
 
 function ymdOf(ms) {
@@ -168,7 +196,7 @@ export async function checkAndWrite(env, now = new Date()) {
     const report = buildObservation({
       from: ymdOf(fromMs),
       to: ymdOf(nowMs),
-      persona: '当前人格',
+      persona: personaNameOfGroup(gid),
       mood: mood?.start && mood?.end
         ? {
             start: mood.start,
