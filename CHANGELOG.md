@@ -17,6 +17,20 @@
 
 ## [Unreleased]
 
+## [1.0.72] - 2026-11-25
+
+### 架构收敛（审计驱动）
+- **路径来源统一**：`pack-paths.mjs` 优先读插件写入的 `globalThis[Symbol.for('bnnbotbox.paths.v1')]`，
+  读不到才回退自身推导。终结扩展包与插件两套路径推导并存、可能算出不同根的数据分裂。
+  优先级：环境变量 > 插件桥 > 自身推导；新增 `DATA_ROOT_SOURCE` 导出便于诊断。
+- **svcOf 收敛**：新增 `lib/pure/svc.mjs` 作为唯一实现（覆盖 caps.kernel/kernel/caps/ctx
+  多层兜底，逐属性 try 防 cordis getter 抛错）；`llm-host.mjs` 改为 re-export 保持兼容，
+  会话列表改为复用（保留其 KERNEL 缓存语义）。原 2 套等价实现收敛为 1 套。
+- **删除空残留目录** `lib/persona/r4/`（无代码引用）。
+
+### 修复
+- `lib/diary/store.mjs` 移除硬编码 `/storage/emulated/0/DSH/Bot/人格`，改走 dirs.mjs。
+
 ## [1.0.71] - 2026-11-25
 
 ### 新增
