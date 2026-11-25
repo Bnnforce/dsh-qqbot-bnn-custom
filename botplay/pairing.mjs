@@ -9,6 +9,8 @@ import { DATA_ROOT, EXT_ROOT } from '../lib/pack-paths.mjs';
 import { loadPackage } from '../lib/pure/deps.mjs';
 
 const sentPairImages = new Set();
+/** 防重复发图幂等集合的上限。超了整体清空——它只是防重，丢了最多重复发一张图，无害。 */
+const SENT_PAIR_MAX = 200;
 async function lib(ctx) {
   return import(pathToFileURL(join(EXT_ROOT, 'lib', 'io', 'pairing.mjs')).href + '?evt=' + Date.now());
 }
@@ -134,6 +136,8 @@ async function pairCardImageMarkdown(ctx, p, appid) {
 async function sendPairImage(ctx, p, appid) {
   const key = `${ctx.cardId}:${p.id}`;
   if (sentPairImages.has(key)) return;
+  // 防内存泄漏：超上限整体清空（只是防重复发图，丢了最多重复发一张，无害）
+  if (sentPairImages.size >= SENT_PAIR_MAX) sentPairImages.clear();
   try {
     const out = await makePairImage({
       dir: ctx.dir,
