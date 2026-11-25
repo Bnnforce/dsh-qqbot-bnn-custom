@@ -17,6 +17,21 @@
 
 ## [Unreleased]
 
+## [1.0.71] - 2026-11-25
+
+### 新增
+- **关系可见（缺口 3）**：新增 `lib/pair-relation/`（`infer.mjs` 纯推断 + `store.mjs` 原子存储）
+  + `inbound/pair-relation-track.mjs` 入站钩子。从「谁 @ 了谁」「相邻发言」累计群内
+  「人与人」的 close 关系（≥10 次互动），与现有「她→人」单向好感度分开存。
+  铁律：只从互动推断，不从情绪（不做 friction）。数据落 `{EXT_DATA}/pair-relations/<gid>.json`。
+- **人格观察报告（缺口 6）**：新增 `lib/persona-observation/build.mjs`（纯函数：情绪走势/主动程度/
+  关系变化 → Markdown）+ `hooks/persona-observation-task.mjs`（每 2 周一份只读报告）。
+  报告只读、不自动改角色卡；脱敏铁律（不出现 openid/真名）；零 LLM 调用（纯统计汇总）。
+
+### 决策
+- 召回措辞挂点**本版降级**：先让关系数据落盘并在观察报告里可见，等 close 关系稳定产出
+  再考虑措辞注入（侵入 system prompt 风险大、收益延后）。
+
 ## [1.0.70] - 2026-11-25
 
 ### 修复
