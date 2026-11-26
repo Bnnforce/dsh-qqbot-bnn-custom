@@ -25,8 +25,12 @@ const name = 'life-stream-task';
 /** 每小时一次。 */
 const FALLBACK_MS = 3600_000;
 
+/** DSH_HOME（插件数据根，用于读情绪状态文件，避免硬编码绝对路径）。 */
+const DSH_HOME = process.env.DSH_HOME
+  || join(process.env.HOME || '/data/data/com.dsharnessmobile.shell/files/home', '.dsh');
+
 /** 情绪状态文件（插件写，我们只读）。 */
-const MOOD_FILE = '/data/user/0/com.dsharnessmobile.shell/files/home/.dsh/data/dsh-anti-ai-persona/state/mood-axes.json';
+const MOOD_FILE = join(DSH_HOME, 'data', 'dsh-anti-ai-persona', 'state', 'mood-axes.json');
 
 function diag(event, data = {}) {
   try {

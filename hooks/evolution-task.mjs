@@ -30,8 +30,12 @@ const METRICS_FILE = join(EXT_DATA, 'persona-evolution', 'metrics.jsonl');
 /** 里程碑文件。 */
 const MILESTONES_FILE = join(EXT_DATA, 'persona-evolution', 'milestones.json');
 
+/** DSH_HOME（插件数据根，避免硬编码绝对路径）。 */
+const DSH_HOME = process.env.DSH_HOME
+  || join(process.env.HOME || '/data/data/com.dsharnessmobile.shell/files/home', '.dsh');
+
 /** 情绪历史目录（插件写，我们只读）。 */
-const MOOD_DIR = '/data/user/0/com.dsharnessmobile.shell/files/home/.dsh/data/dsh-anti-ai-persona/state/mood-history';
+const MOOD_DIR = join(DSH_HOME, 'data', 'dsh-anti-ai-persona', 'state', 'mood-history');
 
 function diag(event, data = {}) {
   try {

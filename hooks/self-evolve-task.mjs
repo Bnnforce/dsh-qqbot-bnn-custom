@@ -26,14 +26,21 @@ import { join } from 'node:path';
 import { registerWithFallback } from './zz-central-scheduler.mjs';
 import { EXT_DATA } from '../lib/pack-paths.mjs';
 import { appendLogRotating } from '../lib/log-rotate.mjs';
+import { readJsonSafe } from '../lib/pure/atomic.mjs';
 
 const name = 'self-evolve-task';
 
 /** 每周一次（与 evolution-task 错开：周三低峰）。 */
 const FALLBACK_MS = 7 * 24 * 3600_000;
 
+/** 持久化配置文件（与 birthday-config.json 同一模式）。 */
+const CONFIG_NAME = 'self-evolve-config.json';
+
 /** metrics 快照文件（本扩展自己写）。 */
 const METRICS_FILE = join(EXT_DATA, 'persona-evolution', 'metrics.jsonl');
+
+/** 配置文件路径。 */
+const CONFIG_FILE = join(EXT_DATA, CONFIG_NAME);
 
 /** DSH_HOME（插件数据根，用于定位插件代码与 state 目录）。 */
 const DSH_HOME = process.env.DSH_HOME
@@ -70,11 +77,16 @@ function readMetrics() {
  * 读配置里的 selfEvolve 开关。
  *
  * 默认**关闭**（急停优先）：只有主人显式配置 true 才启用 C 档。
+ * 读取优先级：配置文件 self-evolve-config.json → 环境变量。
  */
 function resolveSelfEvolveConfig(env) {
   try {
-    // 先看 env.config，再看环境变量
+    // ① 持久化配置文件（首选，重启不丢）
+    const cfg = readJsonSafe(CONFIG_FILE) ?? {};
+    if (cfg?.selfEvolve === true) return true;
+    // ② env.config
     if (env?.config?.selfEvolve === true) return true;
+    // ③ 环境变量（临时覆盖）
     if (process.env.QQBOT_SELF_EVOLVE === 'true' || process.env.QQBOT_SELF_EVOLVE === '1') return true;
     return false;
   } catch { return false; }
