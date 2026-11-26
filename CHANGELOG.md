@@ -17,6 +17,32 @@
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-26
+
+### Added — R8 记忆统一与长期健康
+
+#### 统一记忆读取层（只读，零风险）
+- `lib/memory/read.mjs` — 把 6 套存储聚合成一个只读接口：readPerson / readGroup / readChronicle / readRelations / readEvolution / readLifeStream / readSlang / overview
+- 铁律：只读，零写操作，最坏情况是读不到绝不破坏数据
+
+#### 发散联想 + 查询工具
+- `lib/memory/associate.mjs` — 三跳联想（关键词→命中→关联）
+- `tools/memory_query.mjs` — 7 种 scope 查询（group/person/relations/growth/life/slang/overview）
+- `hooks/memory-assoc-hint.mjs` — pre-step 自动联想注入
+
+#### 梗自动发现
+- `lib/slang/harvest.mjs` — 从群聊提取候选梗（阈值：2-6字、≥3次、≥2人）
+- `hooks/slang-harvest-task.mjs` — 每天跑一次，只写候选.md 绝不碰黑话.md
+
+#### 日志轮转 + GC
+- 17 个日志文件接入 `appendLogRotating`（防无限增长）
+- `lib/memory/gc.mjs` + `hooks/memory-gc-task.mjs` — 每周 GC（归档冷数据、只移不删）
+
+#### 人物卡去重（dry-run 安全）
+- `scripts/analyze-person-duplicates.mjs` — 只读分析（实测 58 张卡 → 46 张，9 人重复）
+- `scripts/migrate-person-dedupe.mjs` — 默认 dry-run，`--apply` 才执行，隐私红线宁可不合并
+- `scripts/memory-rollback.mjs` — 一键回滚
+
 ## [1.0.73] - 2026-11-25
 
 > 汇总 R6.5~R6.8 的修复：**代码写完 ≠ 真能跑**，本版全是「之前就有但没跑起来」的功能。
