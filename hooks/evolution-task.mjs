@@ -10,7 +10,7 @@
  *   ⚠️ 只读呈现：绝不改角色卡。人格是用户唯一能确定的东西。
  * ═══════════════════════════════════════════════════════════════════════════
  */
-import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { join } from 'node:path';
 
@@ -136,7 +136,19 @@ export async function run(env) {
       try {
         mkdirSync(join(EXT_DATA, 'persona-evolution'), { recursive: true });
         // ⚠️ 指标快照是**数据**不是日志，绝不能轮转（轮转会丢历史）
-        appendFileSync(METRICS_FILE, JSON.stringify(snapshot) + '\n', 'utf8');
+          // ★ 2026-11-27 修（真 bug，导致 C 档永远无法进化）：
+          //   原来每次 tick 都无条件追加。实测同一 period（同一天）被写了 26 条，
+          //   style 值完全一样 ⇒ styleDelta 恒为 0 ⇒ C 档永远判定「状态稳定」。
+          //   现在：同一 period 已存在则覆盖该条，不重复追加。
+          const prev = readMetrics();
+          const sameIdx = prev.findIndex((s) => s && s.period === snapshot.period);
+          if (sameIdx >= 0) {
+            prev[sameIdx] = snapshot;
+            writeFileSync(METRICS_FILE, prev.map((s) => JSON.stringify(s)).join('\n') + '\n', 'utf8');
+            diag('updated-same-period', { period: snapshot.period });
+          } else {
+            appendFileSync(METRICS_FILE, JSON.stringify(snapshot) + '\n', 'utf8');
+          }
       } catch (e) {
         diag('write-failed', { err: e instanceof Error ? e.message : String(e) });
         return;
