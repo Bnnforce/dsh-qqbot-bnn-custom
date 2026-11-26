@@ -1,0 +1,65 @@
+name: CI
+
+# 只做最低成本的自检：不装依赖、不联网下载包，纯语法检查。
+# 本仓库是「克隆下来就能用」的扩展包（纯 .mjs，无构建产物），
+# 语法错是最常见也最容易拦住的问题，所以 CI 只守这一条底线。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    name: 语法检查（node --check）
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          # 不配置 cache：本项目不装依赖，没有 lockfile 可缓存
+
+      - name: 打印环境
+        run: |
+          node --version
+          npm --version
+
+      - name: 对所有 .mjs 跑 node --check
+        shell: bash
+        run: |
+          set -uo pipefail
+          dirs="lib hooks commands tools inbound outbound botplay"
+          fail=0
+          count=0
+          for d in $dirs; do
+            if [ ! -d "$d" ]; then
+              echo "::error::缺少目录 $d"
+              fail=1
+              continue
+            fi
+            while IFS= read -r -d '' f; do
+              count=$((count + 1))
+              if ! node --check "$f"; then
+                echo "::error file=$f::语法检查失败"
+                fail=1
+              fi
+            done < <(find "$d" -type f -name '*.mjs' -print0)
+          done
+          echo "共检查 $count 个 .mjs 文件"
+          if [ "$count" -eq 0 ]; then
+            echo "::error::没有找到任何 .mjs 文件，检查目标可能写错了"
+            exit 1
+          fi
+          if [ "$fail" -ne 0 ]; then
+            echo "❌ 存在语法错误"
+            exit 1
+          fi
+          echo "✅ 语法全部通过（$count 个文件）"
