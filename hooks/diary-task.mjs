@@ -110,6 +110,41 @@ function placeholderDiary(persona) {
 }
 
 /** 可单测：到点后逐群写日记。 */
+/** 日记唤醒诊断（只写本地日志，失败静默）。 */
+function diagDiary(event, gid, date, detail = '') {
+  try {
+    const file = join(EXT_DATA, 'diary-diag.log');
+    mkdirSync(dirname(file), { recursive: true });
+    const tail = detail ? ' ' + detail : '';
+    const line = new Date().toISOString() + ' [diary] ' + event + ' ' + String(gid).slice(0, 8) + ' ' + date + tail + '\n';
+    writeFileSync(file, line, { flag: 'a' });
+  } catch { /* 日志失败不影响主流程 */ }
+}
+
+/**
+ * 构造「让宿主写日记」的提示词。
+ *
+ * 为什么不是自己调 LLM：扩展 hook 的 ctx 够不到 llm 服务（见调用处注释）。
+ * 我们把当天的事件摘要交给宿主，由 AI 带着完整人格写。
+ */
+function buildDiaryWakePrompt(persona, events, date) {
+  const out = [];
+  out.push('（系统触发：请为 ' + date + ' 写一篇日记）');
+  out.push('');
+  out.push('你是' + (persona || '爱莉希雅') + '。把今天群里发生的事，用你自己的口吻写成一篇日记。');
+  out.push('要求：自然、不煽情、不刻意，像睡前随手写的。150 字以内。只输出日记正文，不要标题、不要解释。');
+  if (Array.isArray(events) && events.length) {
+    out.push('', '今天发生的事（素材，供参考）：');
+    for (const e of events.slice(0, 12)) {
+      const t = typeof e === 'string' ? e : (e && (e.text || e.summary)) || '';
+      if (t) out.push('- ' + String(t).slice(0, 80));
+    }
+  } else {
+    out.push('', '今天群里比较安静，没什么特别的事。');
+  }
+  return out.join('\n');
+}
+
 export async function checkAndWrite(env, now = new Date()) {
   const root = dataRootOf(env);
   if (!root) return { ok: false, reason: 'no-data-root', results: [] };
@@ -149,13 +184,69 @@ export async function checkAndWrite(env, now = new Date()) {
     //   不是 env 本身。这里传 env.ctx，llm.mjs 里还有一层下钻兜底。
     let content = null;
     try {
+      // ★ 2026-11-26 诊断：记录 env 真实形状，定位「no-llm」为何持续失败。
+      try {
+        const { appendFileSync: _ap, mkdirSync: _mk } = await import('node:fs');
+        const { join: _j } = await import('node:path');
+        const { EXT_DATA: _ed } = await import('../lib/pack-paths.mjs');
+        _mk(_ed, { recursive: true });
+        _ap(_j(_ed, 'diary-env-probe.log'), JSON.stringify({
+          at: new Date().toISOString(),
+          envType: typeof env,
+          envKeys: env && typeof env === 'object' ? Object.keys(env).slice(0, 25) : [],
+          hasEnvCtx: Boolean(env?.ctx),
+          ctxType: typeof env?.ctx,
+          ctxKeys: env?.ctx && typeof env.ctx === 'object' ? Object.keys(env.ctx).slice(0, 25) : [],
+          ctxHasGet: typeof env?.ctx?.get === 'function',
+          capsHasKernel: Boolean(env?.caps?.kernel),
+          capsKernelGet: typeof env?.caps?.kernel?.get === 'function',
+        }) + '\n', 'utf8');
+      } catch { /* 探针失败不影响主流程 */ }
       content = await generateDiary({ ctx: env?.ctx ?? env, persona, events, meta: { date, timeoutMs: 20_000 } });
     } catch { content = null; }
-    if (!content || !content.trim()) {
-      content = placeholderDiary(persona);
+      // ★★ 2026-11-26 架构修正（真根因）：扩展 hook 的 ctx 够不到 llm。
+      //   cordis 的 ctx.get(name) 只在本 ctx 所属 fiber 树里找（cordis _getImpl）。
+      //   扩展 hook 拿到的是 qqbot 插件的子 ctx（env.ctx === caps.kernel === opts.ctx），
+      //   其 store 里没有 llm（llm 由 dsh-llm 在另一条 fiber 分支提供）⇒ 恒 undefined。
+      //   与 memoir 2026-11-21 的结论一致（连修 6 轮后改为「让宿主生成」）。
+      //
+      //   正确方案：用宿主提供的 env.wakeTo(scope, peerId, text)。
+      //   它把一条消息注入指定会话，AI 带着完整人格+上下文自己写并回复到 QQ。
+      //   ⇒ LLM 调用是宿主的事。
+      if (!content || !content.trim()) {
+        const wakeTo = env?.wakeTo;
+        let woken = false;
+        if (typeof wakeTo === 'function') {
+          try {
+            const prompt = buildDiaryWakePrompt(persona, events, date);
+            woken = (await wakeTo('group', gid, prompt)) !== false;
+            if (woken) diagDiary('wake-sent', gid, date);
+          } catch (e) {
+            diagDiary('wake-throw', gid, date, e instanceof Error ? e.message : String(e));
+          }
+        }
+        if (!woken) {
+          diagDiary('wake-unavailable', gid, date);
+          content = placeholderDiary(persona);
+        }
+      }
+
+    // wake 已发出：日记正文由宿主在正常回合里生成并回复。
+    // 我们这边不写占位、也不记账（避免留下假日记 + 阻塞明天重试）。
+    if (content === null) {
+      // ★ 必须记账，否则下一拍 tick 还会认为「今天没写」⇒ 重复唤醒刷屏。
+      state.last[key] = new Date().toISOString();
+      results.push({ gid, persona, status: "woken" });
+      writeJson(stateFile, state);
+      continue;
     }
 
     // 落盘（原子写）
+    // 防御：content 必须是字符串（历史上出过写入字面量 null 的事故）。
+    if (typeof content !== "string" || !content.trim()) {
+      results.push({ gid, persona, status: "empty-content" });
+      continue;
+    }
     const ok = writeDiary(persona, gid, date, content + '\n', env?.logger);
     if (ok) {
       state.last[key] = new Date().toISOString();
