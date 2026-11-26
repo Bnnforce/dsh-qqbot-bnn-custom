@@ -1,0 +1,149 @@
+/**
+ * self-evolve-task — 自我进化 C 档触发器（R8 S8 收尾，2026-11-26）
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * C 档 = 有限自改。这个 hook 是**触发器**，真正的自改逻辑在插件侧
+ * `evolution-auto.js`（纯函数 + 七道兜底）。
+ *
+ * ── 数据流 ─────────────────────────────────────────────────────────────────
+ *
+ *   本 hook（扩展包侧）               插件侧（dsh-bnnbotbox）
+ *   ├─ 读 metrics.jsonl（自己的数据）   ├─ evolution-auto.js（能力）
+ *   ├─ 读 behavior-state.json（插件写） ├─ 白名单/黑名单/护栏/夹紧
+ *   └─ 调 evolveOnce() 落地自改 ────────→ 写 behavior-state.json + 备份 + 审计
+ *
+ * ── 安全铁律 ───────────────────────────────────────────────────────────────
+ *
+ *   ① 默认急停：config.selfEvolve 默认 false，主人显式开启才跑
+ *   ② 每周最多一次（与 evolution-task 同频，错峰）
+ *   ③ 插件缺席/报错 → 静默跳过，绝不影响主链
+ *   ④ 自改后**通知主人**（私聊/日志），让主人知道她改了什么、可一键回滚
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { registerWithFallback } from './zz-central-scheduler.mjs';
+import { EXT_DATA } from '../lib/pack-paths.mjs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
+
+const name = 'self-evolve-task';
+
+/** 每周一次（与 evolution-task 错开：周三低峰）。 */
+const FALLBACK_MS = 7 * 24 * 3600_000;
+
+/** metrics 快照文件（本扩展自己写）。 */
+const METRICS_FILE = join(EXT_DATA, 'persona-evolution', 'metrics.jsonl');
+
+/** DSH_HOME（插件数据根，用于定位插件代码与 state 目录）。 */
+const DSH_HOME = process.env.DSH_HOME
+  || join(process.env.HOME || '/data/data/com.dsharnessmobile.shell/files/home', '.dsh');
+
+/** 插件 state 目录。 */
+const PLUGIN_STATE_DIR = join(DSH_HOME, 'data', 'dsh-anti-ai-persona', 'state');
+
+/** 插件 evolution-auto.js 绝对路径（动态 import，缺席则跳过）。 */
+const PLUGIN_AUTO_JS = join(DSH_HOME, 'plugins', 'dsh-bnnbotbox', 'lib', 'persona', 'r4', 'evolution-auto.js');
+
+function diag(event, data = {}) {
+  try {
+    const file = join(EXT_DATA, 'self-evolve.log');
+    appendLogRotating(file, JSON.stringify({ at: new Date().toISOString(), event, ...data }) + '\n', 'utf8');
+  } catch { /* 日志失败不影响主流程 */ }
+}
+
+/** 读 metrics 历史快照。 */
+function readMetrics() {
+  if (!existsSync(METRICS_FILE)) return [];
+  try {
+    const raw = readFileSync(METRICS_FILE, 'utf8');
+    const out = [];
+    for (const line of raw.split('\n')) {
+      if (!line.trim()) continue;
+      try { out.push(JSON.parse(line)); } catch { /* 跳过坏行 */ }
+    }
+    return out;
+  } catch { return []; }
+}
+
+/**
+ * 读配置里的 selfEvolve 开关。
+ *
+ * 默认**关闭**（急停优先）：只有主人显式配置 true 才启用 C 档。
+ */
+function resolveSelfEvolveConfig(env) {
+  try {
+    // 先看 env.config，再看环境变量
+    if (env?.config?.selfEvolve === true) return true;
+    if (process.env.QQBOT_SELF_EVOLVE === 'true' || process.env.QQBOT_SELF_EVOLVE === '1') return true;
+    return false;
+  } catch { return false; }
+}
+
+export async function run(env) {
+  const tick = async () => {
+    try {
+      // ① 急停：默认关闭，主人没开就不跑
+      const enabled = resolveSelfEvolveConfig(env);
+      if (!enabled) {
+        diag('skip', { reason: 'selfEvolve 未开启（急停默认）' });
+        return;
+      }
+
+      // ② 读 metrics 快照
+      const snapshots = readMetrics();
+      if (snapshots.length < 3) {
+        diag('skip', { reason: '快照不足', count: snapshots.length });
+        return;
+      }
+
+      // ③ 插件缺席 → 跳过
+      if (!existsSync(PLUGIN_AUTO_JS)) {
+        diag('skip', { reason: '插件 evolution-auto.js 不存在' });
+        return;
+      }
+
+      // ④ 动态 import 插件侧 C 档能力（try/catch，缺席/报错静默）
+      //    ⚠️ 不用 import(x+'?'+Date.now()) 缓存破坏（会内存泄漏，项目规范禁止）。
+      //    正常 import 即可，Node 会缓存模块实例。
+      let AUTO;
+      try {
+        AUTO = await import(`file://${PLUGIN_AUTO_JS}`);
+      } catch (e) {
+        diag('skip', { reason: 'import 失败', err: e instanceof Error ? e.message : String(e) });
+        return;
+      }
+
+      // ⑤ 调 evolveOnce 落地自改
+      const result = await AUTO.evolveOnce({
+        stateDir: PLUGIN_STATE_DIR,
+        config: { selfEvolve: true },
+        snapshots,
+        now: Date.now(),
+      });
+
+      if (!result.ok) {
+        diag('no-change', { reason: result.reason });
+        return;
+      }
+
+      // ⑥ 自改成功 → 记日志（含「主人可见」审计）
+      diag('evolved', {
+        applied: result.applied,
+        backupPath: result.backupPath,
+        hint: '可回滚：node 插件侧 rollback 或恢复备份文件',
+      });
+    } catch (e) {
+      diag('failed', { err: e instanceof Error ? e.message : String(e) });
+    }
+  };
+
+  // 首轮立即检查一次（如果已到周期）
+  await tick();
+
+  registerWithFallback('self-evolve-task', () => tick(), {
+    env, fallbackMs: FALLBACK_MS, label: 'self-evolve-task', meta: { id: 'ext-self-evolve' },
+  });
+}
+
+export default { name, run };
