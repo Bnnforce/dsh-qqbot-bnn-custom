@@ -14,6 +14,7 @@
  * ⚠️ 失败必须关闭。
  */
 import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { pathToFileURL } from 'node:url';
@@ -29,7 +30,7 @@ function diag(tag, data) {
   try {
     const dir = join(process.env.DSH_HOME || join(homedir(), '.dsh'), 'data', 'dsh-anti-ai-persona');
     mkdirSync(dir, { recursive: true });
-    appendFileSync(join(dir, 'shop-task.log'),
+    appendLogRotating(join(dir, 'shop-task.log'),
       `${new Date().toISOString()} ${tag} ${JSON.stringify(data)}\n`, 'utf8');
   } catch { /* ignore */ }
 }

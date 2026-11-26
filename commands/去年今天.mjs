@@ -12,6 +12,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { join } from 'node:path';
 
 import { EXT_DATA } from '../lib/pack-paths.mjs';
@@ -27,7 +28,7 @@ import { commandPeer } from '../lib/pure/card-kit.mjs';
 function diag(event, data = {}) {
   try {
     mkdirSync(EXT_DATA, { recursive: true });
-    appendFileSync(join(EXT_DATA, 'timemachine-diag.log'),
+    appendLogRotating(join(EXT_DATA, 'timemachine-diag.log'),
       JSON.stringify({ at: new Date().toISOString(), event, ...data }) + '\n', 'utf8');
   } catch { /* 日志失败不影响命令 */ }
 }

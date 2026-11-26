@@ -11,6 +11,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { appendFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { join } from 'node:path';
 
 import { registerWithFallback } from './zz-central-scheduler.mjs';
@@ -31,7 +32,7 @@ function diag(event, data = {}) {
   try {
     const file = join(EXT_DATA, 'life-stream-diag.log');
     mkdirSync(EXT_DATA, { recursive: true });
-    appendFileSync(file, JSON.stringify({ at: new Date().toISOString(), event, ...data }) + '\n', 'utf8');
+    appendLogRotating(file, JSON.stringify({ at: new Date().toISOString(), event, ...data }) + '\n', 'utf8');
   } catch { /* 日志失败不影响主流程 */ }
 }
 
@@ -79,7 +80,10 @@ export async function run(env) {
           const kind = pickActivity({ mood, hasHistory }, now, recent);
           const detail = renderActivity(kind, mood, now);
           if (!detail) continue;
-          const ok = appendLifeLog(gid, { at: now, kind, detail });
+          // ★ 2026-11-26 再修（R7 修复被回退了）：
+                    //   ① 字段名必须是 activity（store 的 normalizeEntry 只认它，用 kind 会被拒写）
+                    //   ② 必须带 mood，否则 clamp01(undefined) 让情绪永远是 0（假数据）
+                    const ok = appendLifeLog(gid, { at: now, activity: kind, detail, mood });
           if (ok) wrote += 1;
         } catch { /* 单群失败不影响其他 */ }
       }

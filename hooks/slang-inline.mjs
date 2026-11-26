@@ -24,6 +24,7 @@
  *   · 任何异常 → 静默跳过，绝不影响消息链路
  */
 import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { PERSONA_ROOT } from '../lib/io/persona-store.mjs';
@@ -35,7 +36,7 @@ function diag(tag, data) {
   try {
     const dir = join(process.env.DSH_HOME || join(homedir(), '.dsh'), 'data', 'dsh-anti-ai-persona');
     mkdirSync(dir, { recursive: true });
-    appendFileSync(join(dir, 'slang-inline.log'),
+    appendLogRotating(join(dir, 'slang-inline.log'),
       `${new Date().toISOString()} ${tag} ${JSON.stringify(data)}\n`, 'utf8');
   } catch { /* 日志失败不影响主链路 */ }
 }

@@ -1,4 +1,5 @@
 import { DATA_ROOT as PACK_DATA_ROOT, WORKSPACE_ROOT } from '../lib/pack-paths.mjs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { writeJsonAtomic } from '../lib/pure/atomic.mjs';
 /**
  * /子会话 — 创建子会话的「问答式向导」（2026-10-13）
@@ -71,7 +72,7 @@ async function diag(msg) {
     const { appendFileSync, mkdirSync } = await import('node:fs');
     const { dirname } = await import('node:path');
     mkdirSync(new URL('file://' + (process.env.QQBOT_DATA_ROOT || PACK_DATA_ROOT) + '/.qqbot-extensions/data/'), { recursive: true });
-    appendFileSync(DIAG_URL, `${new Date().toISOString()} ${msg}\n`);
+    appendLogRotating(DIAG_URL, `${new Date().toISOString()} ${msg}\n`);
   } catch { /* 诊断失败绝不影响主流程 */ }
 }
 

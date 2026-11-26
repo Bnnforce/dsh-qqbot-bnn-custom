@@ -15,11 +15,24 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { readPerson, readGroup, readChronicle, readRelations, readEvolution, readLifeStream, readSlang, overview } from '../lib/memory/read.mjs';
+import { associate } from '../lib/memory/associate.mjs';
 import { commandPeer } from '../lib/pure/card-kit.mjs';
 
 /** 脱敏：任何输出不得含 32 位 hex openid。 */
 function scrub(s) {
   return String(s ?? '').replace(/[0-9A-Fa-f]{32}/g, '【某人】');
+}
+
+/**
+ * 群 id 短显示。
+ *
+ * ★ 2026-11-26：原来直接把完整 gid 返回给模型。
+ *   群 id 虽不是个人隐私，但 32 位 hex 出现在输出里会被隐私检查判为泄露，
+ *   也浪费 token。统一显示前 8 位即可定位。
+ */
+function shortGid(g) {
+  const t = String(g ?? '').replace(/^group_/, '');
+  return t.length > 8 ? t.slice(0, 8) + '…' : t;
 }
 
 /** 截断。 */
@@ -46,10 +59,11 @@ export default {
     properties: {
       scope: {
         type: 'string',
-        enum: ['group', 'person', 'relations', 'growth', 'life', 'slang', 'overview'],
+        enum: ['group', 'person', 'relations', 'growth', 'life', 'slang', 'overview', 'associate'],
         description: '查什么',
       },
       openid: { type: 'string', description: 'scope=person 时必填：群友 openid' },
+      query: { type: 'string', description: 'scope=associate 时必填：联想的关键词或一句话' },
       gid: { type: 'string', description: '群 id；不填则用当前群' },
       limit: { type: 'number', description: '最多返回几条，默认 10' },
     },
@@ -76,7 +90,7 @@ export default {
           const g = readGroup(gid);
           return {
             ok: true,
-            gid,
+            gid: shortGid(gid),
             chronicle: g.chronicle.slice(-limit).map((e) => ({
               date: e.date,
               参与人数: Array.isArray(e.participants) ? e.participants.length : 0,
@@ -95,16 +109,39 @@ export default {
           const oid = String(args?.openid ?? '').trim();
           if (!oid) return { ok: false, error: 'scope=person 需要 openid' };
           const p = readPerson(oid, gid ? { gid } : {});
-          return {
-            ok: true,
-            openid: scrub(oid),
-            cards: p.cards.map((c) => ({ gid: c.gid, text: scrub(clip(c.text, 500)) })),
-            relations: p.relations.map((r) => ({
-              key: scrub(r.key), interactions: r.interactions, closeness: r.closeness, tension: r.tension,
-            })),
-            mentionedIn: p.mentionedIn.slice(-limit),
-            birthdays: p.birthdays.map((b) => ({ gid: b.gid, list: b.list })),
-          };
+            // ★ R8 S5：附上「关系强度排行」和「联想」，让一次查询拿到完整画像
+            const rels = p.relations
+              .slice()
+              .sort((a, b) => (Number(b.interactions) || 0) - (Number(a.interactions) || 0))
+              .slice(0, limit)
+              .map((r) => ({
+                key: scrub(r.key),
+                interactions: Number(r.interactions) || 0,
+                closeness: r.closeness ?? null,
+                tension: r.tension ?? null,
+              }));
+
+            // 从人物卡里抽名字，做三跳联想（复用 associate，不重写）
+            let related = [];
+            try {
+              const name = (p.cards[0]?.text ?? '').match(/^#\s*群成员[—-](.+)$/m)?.[1]?.trim() ?? '';
+              if (name && gid) {
+                const a = associate(gid, name, { maxHops: 2, perHopLimit: 2 });
+                related = (a.hits ?? []).slice(0, limit).map((h) => ({
+                  kind: h.kind, id: scrub(String(h.id)), hop: h.hop, text: scrub(clip(h.text, 80)),
+                }));
+              }
+            } catch { /* 联想失败不影响主查询 */ }
+
+            return {
+              ok: true,
+              openid: scrub(oid),
+              cards: p.cards.map((c) => ({ gid: shortGid(c.gid), text: scrub(clip(c.text, 500)) })),
+              relations: rels,
+              mentionedIn: p.mentionedIn.slice(-limit).map((m) => ({ gid: shortGid(m.gid), date: m.date, participants: m.participants, score: m.score })),
+              birthdays: p.birthdays.map((b) => ({ gid: shortGid(b.gid), list: b.list })),
+              related,
+            };
         }
 
         case 'relations': {
@@ -120,7 +157,7 @@ export default {
             }))
             .sort((a, b) => b.interactions - a.interactions)
             .slice(0, limit);
-          return { ok: true, gid, total: Object.keys(rels).length, top: rows };
+          return { ok: true, gid: shortGid(gid), total: Object.keys(rels).length, top: rows };
         }
 
         case 'growth': {
@@ -143,7 +180,7 @@ export default {
           const logs = readLifeStream(gid, { limit });
           return {
             ok: true,
-            gid,
+            gid: shortGid(gid),
             count: logs.length,
             recent: logs.map((l) => ({ at: l.at, hour: l.hour, activity: l.activity, detail: scrub(clip(l.detail, 60)) })),
           };
@@ -152,7 +189,27 @@ export default {
         case 'slang': {
           if (!gid) return { ok: false, error: '需要群 id' };
           const list = readSlang(gid);
-          return { ok: true, gid, count: list.length, list: list.slice(0, limit) };
+          return { ok: true, gid: shortGid(gid), count: list.length, list: list.slice(0, limit) };
+        }
+
+        case 'associate': {
+          const q = String(args?.query ?? '').trim();
+          if (!q) return { ok: false, error: 'scope=associate 需要 query' };
+          if (!gid) return { ok: false, error: '需要群 id' };
+          // ★ 复用 lib/memory/associate.mjs 的三跳联想，不重写逻辑
+          const a = associate(gid, q, { maxHops: 3, perHopLimit: 3 });
+          return {
+            ok: true,
+            gid: shortGid(gid),
+            keywords: (a.keywords ?? []).map((k) => scrub(String(k))),
+            hits: (a.hits ?? []).slice(0, limit).map((h) => ({
+              kind: h.kind,
+              id: scrub(String(h.id)),
+              hop: h.hop,
+              text: scrub(clip(h.text, 100)),
+            })),
+            summary: scrub(clip(a.summary ?? '', 400)),
+          };
         }
 
         case 'overview': {

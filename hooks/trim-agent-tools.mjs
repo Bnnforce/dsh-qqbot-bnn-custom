@@ -25,6 +25,7 @@
  * 失败关闭：任何异常只 warn，绝不影响消息链路。
  */
 import { appendFileSync } from 'node:fs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { registerWithFallback } from './zz-central-scheduler.mjs';
 import { DATA_ROOT, WORKSPACE_ROOT } from '../lib/pack-paths.mjs';
 
@@ -231,7 +232,7 @@ export async function run(env) {
   const diag = (tag, data) => {
     try {
       const p = `${process.env.HOME || '/data/data/com.dsharnessmobile.shell/files/home'}/.dsh/data/dsh-anti-ai-persona/trim-diag.log`;
-      appendFileSync(p, `${new Date().toISOString()} ${tag} ${JSON.stringify(data)}\n`, 'utf8');
+      appendLogRotating(p, `${new Date().toISOString()} ${tag} ${JSON.stringify(data)}\n`, 'utf8');
     } catch { /* ignore */ }
   };
 

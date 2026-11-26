@@ -27,6 +27,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { join } from 'node:path';
 
 import { EXT_DATA } from '../lib/pack-paths.mjs';
@@ -67,7 +68,7 @@ function diag(tag, data) {
   try {
     const dir = join(EXT_DATA, 'life-stream');
     mkdirSync(dir, { recursive: true });
-    appendFileSync(join(dir, 'inject.log'),
+    appendLogRotating(join(dir, 'inject.log'),
       JSON.stringify({ at: new Date().toISOString(), tag, ...data }) + '\n', 'utf8');
   } catch { /* 日志失败不影响主链路 */ }
 }

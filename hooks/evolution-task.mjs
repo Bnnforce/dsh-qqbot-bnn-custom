@@ -11,10 +11,11 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { join } from 'node:path';
 
 import { registerWithFallback } from './zz-central-scheduler.mjs';
-import { EXT_DATA } from '../lib/pack-paths.mjs';
+import { EXT_DATA, DATA_ROOT } from '../lib/pack-paths.mjs';
 import { styleMetrics, moodMetrics, deltaOf, isSignificant, detectMilestones } from '../lib/persona-evolution/metrics.mjs';
 import { writeJsonAtomic, readJsonSafe } from '../lib/pure/atomic.mjs';
 
@@ -36,7 +37,7 @@ function diag(event, data = {}) {
   try {
     const file = join(EXT_DATA, 'evolution-diag.log');
     mkdirSync(EXT_DATA, { recursive: true });
-    appendFileSync(file, JSON.stringify({ at: new Date().toISOString(), event, ...data }) + '\n', 'utf8');
+    appendLogRotating(file, JSON.stringify({ at: new Date().toISOString(), event, ...data }) + '\n', 'utf8');
   } catch { /* 日志失败不影响主流程 */ }
 }
 
@@ -71,6 +72,39 @@ function readMetrics() {
   } catch { return []; }
 }
 
+/**
+ * 从 msg-history 采集「她自己的」消息（s === self）。
+ *
+ * ★ 2026-11-26 再修（R7 修复被回退了）：
+ *   原来传 styleMetrics([]) 空数组，指标恒为 samples=0，
+ *   等于说话方式这一维从来没算过。实际 msg-history 里 self 消息有几百条。
+ */
+function collectSelfMessages(days = 30) {
+  const out = [];
+  try {
+    const root = join(DATA_ROOT, '.qqbot', 'msg-history');
+    let dirs = [];
+    try { dirs = readdirSync(root).filter((d) => d.startsWith('group_')); } catch { return out; }
+    for (const d of dirs) {
+      let files = [];
+      try { files = readdirSync(join(root, d)).filter((f) => f.endsWith('.jsonl')).sort().slice(-days); } catch { continue; }
+      for (const f of files) {
+        try {
+          const raw = readFileSync(join(root, d, f), 'utf8');
+          for (const line of raw.split('\n')) {
+            if (!line.trim()) continue;
+            try {
+              const j = JSON.parse(line);
+              if (j && j.s === 'self') out.push({ text: String(j.x ?? '') });
+            } catch { /* 跳过坏行 */ }
+          }
+        } catch { /* 跳过坏文件 */ }
+      }
+    }
+  } catch { /* 无 msg-history */ }
+  return out;
+}
+
 export async function run(env) {
   const tick = async () => {
     try {
@@ -82,7 +116,9 @@ export async function run(env) {
 
       // ② 说话方式（从出站消息算，暂用空数组占位——需要出站消息源）
       //    这里先只算情绪，说话方式等有数据源再接。
-      const style = styleMetrics([]);
+      // 真实采集她自己的消息（原来传空数组，指标恒为 0）
+      const selfMsgs = collectSelfMessages(30);
+      const style = styleMetrics(selfMsgs);
 
       const snapshot = {
         at: now,
@@ -95,6 +131,7 @@ export async function run(env) {
       // ③ 追加到指标文件
       try {
         mkdirSync(join(EXT_DATA, 'persona-evolution'), { recursive: true });
+        // ⚠️ 指标快照是**数据**不是日志，绝不能轮转（轮转会丢历史）
         appendFileSync(METRICS_FILE, JSON.stringify(snapshot) + '\n', 'utf8');
       } catch (e) {
         diag('write-failed', { err: e instanceof Error ? e.message : String(e) });

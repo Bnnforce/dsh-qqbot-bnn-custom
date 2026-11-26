@@ -50,6 +50,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { existsSync, readFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { join, dirname } from 'node:path';
 import { DATA_ROOT } from '../lib/pack-paths.mjs';
 import { registerWithFallback } from './zz-central-scheduler.mjs';
@@ -112,7 +113,7 @@ function note(line) {
   if (!readConfig().logDenied) return;
   try {
     mkdirSync(dirname(LOG_FILE), { recursive: true });
-    appendFileSync(LOG_FILE, `[${new Date().toISOString()}] ${line}\n`);
+    appendLogRotating(LOG_FILE, `[${new Date().toISOString()}] ${line}\n`);
   } catch { /* ignore */ }
 }
 

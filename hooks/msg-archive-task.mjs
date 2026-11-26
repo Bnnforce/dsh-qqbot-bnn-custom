@@ -8,6 +8,7 @@
  *       给官方清理留足余量）。已存在且大小一致的文件会跳过，零重复开销。
  */
 import { registerWithFallback } from './zz-central-scheduler.mjs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { archiveMessages, archiveStats } from '../lib/msg-archive.mjs';
 import { EXT_DATA } from '../lib/pack-paths.mjs';
 import { appendFileSync, mkdirSync } from 'node:fs';
@@ -22,7 +23,7 @@ function diag(event, data = {}) {
   try {
     const file = join(EXT_DATA, 'msg-archive.log');
     mkdirSync(EXT_DATA, { recursive: true });
-    appendFileSync(file, JSON.stringify({ at: new Date().toISOString(), event, ...data }) + '\n', 'utf8');
+    appendLogRotating(file, JSON.stringify({ at: new Date().toISOString(), event, ...data }) + '\n', 'utf8');
   } catch { /* 日志失败不影响存档 */ }
 }
 

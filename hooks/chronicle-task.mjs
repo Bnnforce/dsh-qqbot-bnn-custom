@@ -12,6 +12,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { join } from 'node:path';
 
 import { registerWithFallback } from './zz-central-scheduler.mjs';
@@ -39,7 +40,7 @@ function diag(event, data = {}) {
   try {
     const file = join(EXT_DATA, 'chronicle-diag.log');
     mkdirSync(EXT_DATA, { recursive: true });
-    appendFileSync(file, JSON.stringify({ at: new Date().toISOString(), event, ...data }) + '\n', 'utf8');
+    appendLogRotating(file, JSON.stringify({ at: new Date().toISOString(), event, ...data }) + '\n', 'utf8');
   } catch { /* 日志失败不影响主流程 */ }
 }
 

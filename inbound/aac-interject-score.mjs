@@ -30,6 +30,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, statSync } from 'node:fs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { join } from 'node:path';
 import { EXT_DATA } from '../lib/pack-paths.mjs';
 import { addressed } from '../lib/name.mjs';
@@ -252,7 +253,7 @@ function logRow(row) {
     try {
       if (statSync(LOG_FILE).size > ROTATE_BYTES) renameSync(LOG_FILE, `${LOG_FILE}.1`);
     } catch { /* 不存在 */ }
-    appendFileSync(LOG_FILE, `${JSON.stringify(row)}\n`, 'utf8');
+    appendLogRotating(LOG_FILE, `${JSON.stringify(row)}\n`, 'utf8');
   } catch { /* 日志失败绝不影响主链 */ }
 }
 

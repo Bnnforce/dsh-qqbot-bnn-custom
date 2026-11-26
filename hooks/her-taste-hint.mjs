@@ -24,6 +24,7 @@
  */
 
 import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendLogRotating } from '../lib/log-rotate.mjs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -56,7 +57,7 @@ function diag(tag, data) {
     const dir = join(process.env.DSH_HOME || join(homedir(), '.dsh'), 'data', 'dsh-anti-ai-persona');
     mkdirSync(dir, { recursive: true });
     const p = join(dir, 'her-taste-hint.log');
-    appendFileSync(p, `${new Date().toISOString()} ${tag} ${JSON.stringify(data)}\n`, 'utf8');
+    appendLogRotating(p, `${new Date().toISOString()} ${tag} ${JSON.stringify(data)}\n`, 'utf8');
   } catch { /* 日志失败绝不影响主链路 */ }
 }
 
