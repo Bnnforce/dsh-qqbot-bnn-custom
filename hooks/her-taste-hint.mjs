@@ -156,7 +156,12 @@ export async function run(env) {
   // 与 persona-group-overlay 用同一个事件（已验证可用）：agent/pre-step
   // prepend: true = 比人格注入更早跑，保证提示紧贴用户消息
   try {
-    ctx.on('agent/pre-step', handler, { prepend: true });
+    // ★ 2026-11-26 适配 1.13.26 契约 §8.2：
+    //   ctx.on() 返回 disposer，不 dispose 热重载会不断累积（官方明确要求收尾）。
+    const off = ctx.on('agent/pre-step', handler, { prepend: true });
+    if (typeof off === 'function' && typeof env?.registerDispose === 'function') {
+      env.registerDispose(off);
+    }
     diag('BOOT', { msg: 'her-taste-hint 已挂载到 agent/pre-step' });
   } catch (e) {
     diag('BOOT-FAIL', { err: e instanceof Error ? e.message : String(e) });
