@@ -70,7 +70,23 @@ async function memberOpenids(ctx, gid) {
     return await M.memberOpenids({
       qqbotRoot, gid, selfOpenid: selfId, api: ctx?.api,
     });
-  } catch {
+  } catch (e) {
+    // ★ 2026-11-26 修：原来这里静默吞异常 ⇒ 退化成"只显示自己"，
+    //   而排行榜看起来"正常工作"，极难发现。现在把异常记进诊断日志。
+    try {
+      const { appendFileSync, mkdirSync } = await import('node:fs');
+      const { join } = await import('node:path');
+      const { EXT_DATA } = await import('../lib/pack-paths.mjs');
+      mkdirSync(EXT_DATA, { recursive: true });
+      appendFileSync(join(EXT_DATA, 'leaderboard-diag.log'),
+        JSON.stringify({
+          at: new Date().toISOString(),
+          event: 'memberOpenids-failed',
+          error: e instanceof Error ? e.message : String(e),
+          gidLen: String(gid ?? '').length,
+          qqbotRoot,
+        }) + '\n', 'utf8');
+    } catch { /* 诊断失败不影响兜底 */ }
     return selfId ? [selfId] : [];
   }
 }
