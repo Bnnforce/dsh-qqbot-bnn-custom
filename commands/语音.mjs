@@ -73,6 +73,23 @@ export default {
     const raw = String(ctx?.command?.raw ?? ctx?.rawArgs ?? '').trim();
     const { gid } = commandPeer(ctx);
 
+    // ★ 2026-11-26 合规：modelId 原本硬编码部署者的私有 TTS 模型 id。
+    //   现在改为 env BNN_VOICE_MODEL_ID 覆盖、默认空。留空时给出人话提示。
+    try {
+      const V = await voiceMod();
+      const cfg = V.resolveVoiceConfig?.() ?? {};
+      if (cfg.enabled === true && !String(cfg.modelId || '').trim()) {
+        return await say(ctx, [
+          '## 🔊 语音还没配好',
+          '',
+          '需要指定本地 TTS 的模型 id。',
+          '在 DSH 的环境变量里设 BNN_VOICE_MODEL_ID=<你的模型id> 即可。',
+          '',
+          '（用 GET /models 能列出 Voicebox 里已有的模型 id）',
+        ].join('\n'));
+      }
+    } catch { /* 探不到配置就让后面的正常流程报错 */ }
+
     // ── 帮助 ──
     if (/^(帮助|help|\?|？)$/i.test(raw)) {
       return await say(ctx, [
