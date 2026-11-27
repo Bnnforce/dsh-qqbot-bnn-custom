@@ -302,6 +302,42 @@ function findWork() {
     }
   } catch { /* ignore */ }
 
+  // ── ⑦ 群友提议（他们说「你该有 xxx」）────────────────────────────────────
+  try {
+    const ideaDir = join(workspaceRoot(), '自主', '提议');
+    if (existsSync(ideaDir)) {
+      const today = todayStr();
+      const f = join(ideaDir, `${today}.jsonl`);
+      if (existsSync(f)) {
+        const lines = readText(f).split('\n').filter(Boolean);
+        if (lines.length) {
+          const samples = [];
+          for (const l of lines.slice(-5)) {
+            try {
+              const o = JSON.parse(l);
+              if (o?.text) samples.push(`${o.name || '群友'}：${String(o.text).slice(0, 40)}`);
+            } catch { /* skip */ }
+          }
+          work.push({
+            kind: 'idea',
+            priority: 5,
+NaN
+          });
+        }
+      }
+    }
+  } catch { /* ignore */ }
+
+  // ── ⑧ 我自己想到的（灵感）────────────────────────────────────────────────
+  try {
+    const f = join(workspaceRoot(), '自主', '灵感.md');
+    const t = readText(f);
+    const pending = (t.match(/^\s*[-*]\s+(?!\[x\]|\(空着)/gm) || []).length;
+    if (pending >= 2) {
+      work.push({ kind: 'inspiration', priority: 3, detail: `灵感本里有 ${pending} 条没动过的想法` });
+    }
+  } catch { /* ignore */ }
+
   return work.sort((a, b) => b.priority - a.priority);
 }
 
