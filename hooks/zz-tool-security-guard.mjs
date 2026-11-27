@@ -21,6 +21,7 @@
  */
 import { resolve, sep } from 'node:path';
 import { appendLogRotating } from '../lib/log-rotate.mjs';
+import { reviewToolCall, describeReview, RISK } from '../lib/risk-review.mjs';
 import { registerWithFallback } from './zz-central-scheduler.mjs';
 import { DATA_ROOT, WORKSPACE_ROOT } from '../lib/pack-paths.mjs';
 import { IMAGE_ROOT } from '../lib/dirs.mjs';
@@ -82,13 +83,10 @@ const ALWAYS_DENY_TOOLS = new Set([
 ]);
 
 const DEVICE_TOOLS = new Set([
-  'android_capabilities', 'android_privilege_status',
-  'android_screen_list', 'android_device_info', 'android_screenshot',
-  'android_vdisplay_status', 'android_vdisplay_create', 'android_vdisplay_destroy', 'android_vdisplay_input',
-  'android_app_launch',
-  'android_ui_dump', 'android_ui_tree', 'android_ui_click', 'android_ui_scroll', 'android_ui_input', 'android_ui_global',
-  'android_browser_tier', 'android_web_dump', 'android_shell_exec', 'android_termux_channel_exec',
-  'android_env_prepare', 'android_env_recipe', 'android_toolchain_status', 'android_file_incoming_status',
+  // ★ 2026-11-28：全部清理。这 24 个 android_* 工具**已经不存在了**
+  //   （主人 2026-11-02 撤回 root/虚拟屏后，宿主不再注册它们）。
+  //   保留空集合 + 下面的 android_ 前缀检查作为兜底 ——
+  //   万一将来宿主回填，前缀检查仍然拦得住。
 ]);
 
 /**
@@ -151,51 +149,53 @@ function note(line) {
 }
 
 const OWNER_ONLY = new Set([
-  'broadcast_send', 'target_group', 'group_approve_join', 'group_join_auto',
-  'group_mute_member', 'outbound_mode', 'sticker_delete', 'sticker_restore',
-  'sticker_tag', 'schedule_timer', 'schedule_cancel', 'session_wake', 'tools_reload',
-  // 2026-10-22 恢复的本地工具：只给主人，避免群友提示词注入执行命令/读写文件
-  // ★ 2026-11-15：read 已从本集合移出 —— 可见性与可读范围由 HEAVY_WRITE_TOOLS 分支里的
-  //   readDenyReason 逐次判定（只允许读"本次消息带来的文件"），比"只给主人"更精确：
-  //   群友发文件给她看时她需要能读那一份，但读别的任何路径仍被拒。
-  //   ⚠️ 本集合语义是"只给主人"，而 read 现在是"看路径来源"，两者不能混在一起。
-  'bash', 'write', 'edit', 'glob', 'grep',
-  // ★ 2026-11-27：她自己重启引擎（改完代码后）。只给主人 ——
-  //   虽然是专用工具（只做重启、带三道关），但重启会中断所有人，不能让群友触发。
-  'self_restart',
-  // 2026-10-26：跨会话/主动发送/设置/记忆读写只允许主人
-  'qq_send', 'session_children', 'session_create', 'session_send', 'session_watch', 'sessions_list',
-  'sticker_auto',
-  // 2026-11-06（阶段 6.5）：memory-lite 停用，旧 5 个工具名已移除。
-  //   记忆的唯一入口改成 qq_memory（插件，按群隔离）；写操作仍仅主人。
-  'qq_memory',
-  // ★★ 2026-11-02：设备控制面已整体下线（主人撤回 root 与虚拟屏权限），
-  // 这 17 个 android_* 名字不再进 OWNER_ONLY —— 它们改由上方 DEVICE_TOOLS 集合 + guard() 里的
-  // android_ 前缀检查做**无条件拒绝**：不再区分主人/群友，任何人、任何会话都拿不到设备能力。
-  // 不要把 android_* 加回本表。
-  // 2026-11-16：Agent Teams / 子代理 / 编排工具**已移到 ALWAYS_DENY_TOOLS**（一律拒绝）。
-  //   原因：主人明确「调试都在 DSH 里，不在 QQ 里」，所以 QQ 会话里它们没有正当用途。
-  //   不要把它们加回本表 —— "只给主人" 不够，主人自己误触也是危害。
-  // 2026-11-01 审查 P0-2：QQBot 内置「群管理写操作 / 素材上传 / 会话索引」工具也是 agent 作用域
-  // 注册（trim 拦不住），而 dist/channel-tools.js 里除本守卫外没有 isOwner 判定（Phase B 后旧
-  // node_modules 门禁补丁已移除）⇒ 群友经提示词注入即可踢人/批量撤回/改全局撤回词/搜群消息/
-  // 把本机任意图片上传成 QQ 素材。执行面一律只允许主人。
-  'group_kick', 'group_recall', 'group_recall_batch', 'recall_message', 'recall_keywords',
-  'group_msg_search', 'qq_material', 'session_list',
-  // ★★ 2026-11-16 补漏（P0 安全）：qq_group_admin **之前漏了，不在任何门禁里**。
-  //   危害：它是「用**主人自己的 QQ 号**登录并管理群」的工具（action=login/groups/members/kick），
-  //   而 qqbot 内置工具**自身不做身份校验**（owners 配置只喂给扩展工具的 env，不给内置通道工具）
-  //   ⇒ 群友经提示词注入即可：登录主人账号、列出主人的群、**以主人身份踢人**。
-  //   这与 2026-11-01 审查给 group_kick/qq_material 加门禁是同一类问题，当时漏了这一项。
-  //   现在一律只允许主人。
-  'qq_group_admin',
-  // ★ 2026-11-05 修（P0）：`reply_gate` 从 OWNER_ONLY 移出。
-  //   它只是「闭嘴开关」（reply:false → 终止本回合，不说任何话），群友就算诱发它，
-  //   后果也只是机器人少说一句，**没有任何越权面**（不读文件、不发消息、不碰会话）。
-  //   而它恰恰是心跳 wake 模式唯一的「沉默权」手段：wake 回合里 agent 要调它来说"不接这个话"。
-  //   原先它在白名单里 + 守卫的发送者 TTL(15min) 比心跳静默门槛(min_quiet=20min) 还短，
-  //   导致 **wake 回合几乎必被拒**（生产 security-guard.log 已有 3 条 DENY reply_gate），
-  //   心跳"没话就闭嘴"的机制实际是坏的 —— 只能硬说一句，正是 20:05 事故要修的病。
+  // ══════════════════════════════════════════════════════════════════════════
+  // ★★ 2026-11-28 大改：主人要求「权限限制导致她大部分自主能力受限 →
+  //    做完整放开，但是做识别高危，动手自动审查。」
+  //
+  // 原则：
+  //   只保留「**她不该替主人决定**」和「**会伤到人/群**」的两类，
+  //   其余一律放开。放开的部分由 risk-review 做高危审查。
+  //
+  // 从本表移出的（放开给她自己用）：
+  //   bash / write / edit / glob / grep  ← 自主核心，高危有 risk-review 兜
+  //   qq_memory                          ← 她该能读写自己的记忆
+  //   session_* / sessions_list          ← 她该能管理自己的会话
+  //   schedule_timer / schedule_cancel   ← 她该能自己排程
+  //   sticker_tag / delete / restore     ← 表情管理
+  //   group_join_auto / group_approve_join ← 入群审批
+  //
+  // 本表保留的，理由写在每一项旁边。
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── 会伤到人 / 群：她不能替主人行使群管理权 ──
+  'group_kick',        // 踢人：误踢不可撤销，且代表主人意志
+  'group_recall',      // 批量撤回：会抹掉别人的话
+  'recall_message',    // 单条撤回：同上
+  'group_mute_member', // 禁言：限制他人发言
+
+  // ── 主动发消息：不该由她单方面决定给谁发 ──
+  'broadcast_send',    // 群发
+  'target_group',      // 指定群发送
+  'qq_send',           // 绕过正常通道直接发
+  'session_send',      // 往别的会话发
+
+  // ── 改行为开关：这是主人调的旋钮 ──
+  'outbound_mode',     // 出站模式
+
+  // ── 跨会话操作：她能管自己的，但不能替主人决定往哪发 ──
+  'session_children', 'session_create', 'session_watch', 'sessions_list', 'session_list',
+
+  // ── 危险操作：即使有审查也不该常态化 ──
+  'self_restart',      // 重启会中断所有人（保留了它但需主人发起）
+  'tools_reload',      // 热重载改的是全局行为
+
+  // ── 备注 ──
+  //   · android_* 已由 DEVICE_TOOLS（空集）+ 前缀检查做无条件拒绝，不要加回本表。
+  //   · 多智能体/编排（subagent / workflow / ralph / team_*）在 ALWAYS_DENY_TOOLS，
+  //     一律拒绝，不要加回本表。
+  //   · reply_gate 不在本表（2026-11-16 已确认：它只是「闭嘴开关」，无越权面，
+  //     且是心跳 wake 模式唯一的沉默手段）。
 ]);
 
 function senderMap() {
@@ -421,10 +421,71 @@ function guard(exec) {
       }
 
       if (!hasWriteIntent) {
-        note(`DENY heavy-tool name=${name} sender=${entryNow?.senderId ?? '?'} text="${text.slice(0, 40)}"`);
-        return '群里默认不写文件；需要的话请明确说“写进文件/新建文档/保存到备忘录”';
+        // ═══════════════════════════════════════════════════════════════════
+        // ★★ 2026-11-28 主人新要求：「权限限制导致她大部分自主能力受限 →
+        //    做完整放开，但是做识别高危，动手自动审查。」
+        //
+        //    原来：没有「写进文件」这种明确指令 → 一律拒。
+        //    结果：她想读个文件、查个代码都得等主人说特定词。太死。
+        //
+        //    现在：写意图不再卡死 —— 交给下面的 risk-review 判：
+        //      · 普通读写 → 放行
+        //      · 删文件/改系统 → 高危，留痕放行
+        //      · 不可恢复 → 拒
+        // ═══════════════════════════════════════════════════════════════════
+        note(`NO-WRITE-INTENT allow name=${name} sender=${entryNow?.senderId ?? '?'} text="${text.slice(0, 40)}"`);
+        // 不 return —— 让它继续走到后面的风险审查
       }
       // 命中明确指令：交给后面原有的 owner 判定继续走（写文件仍然只认主人）
+    }
+
+      // ═══════════════════════════════════════════════════════════════════
+      // ★★ 2026-11-28：风险审查必须**所有工具都过**，不能只查 OWNER_ONLY 里的。
+      //
+      //   踩坑记录：原先审查写在 OWNER_ONLY 的拒绝分支里，
+      //   而这一行「不在 OWNER_ONLY → return undefined」会提前放行，
+      //   ⇒ bash rm -rf / 直接穿过去了（因为 bash 已被移出 OWNER_ONLY）。
+      //
+      //   正确做法：审查放在这个提前放行**之前**。
+      // ═══════════════════════════════════════════════════════════════════
+      let risk = { level: RISK.SAFE, reasons: [] };
+      try {
+        risk = reviewToolCall(name, exec?.arguments ?? {});
+      } catch { risk = { level: RISK.SAFE, reasons: [] }; }
+
+      // 硬禁区：不可恢复的操作，给什么都不放
+      if (risk.level === RISK.BLOCK) {
+        note(`DENY hard-block name=${name} reasons=${risk.reasons.join('|')} sender=${currentEntry(exec?.agent)?.entry?.senderId ?? '?'}`);
+        return `这个操作不可恢复，我不做（${risk.reasons.join('、')}）`;
+      }
+
+      // 高危：放行，但留审查痕迹
+      if (risk.level === RISK.HIGH) {
+        note(`HIGH-RISK allow name=${name} reasons=${risk.reasons.join('|')} sender=${currentEntry(exec?.agent)?.entry?.senderId ?? '?'}`);
+      }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // ★★ 2026-11-28 关键：放开是给**主人**的她，不是给群友。
+    //
+    //   踩坑记录（两次）：
+    //     ① bash 移出 OWNER_ONLY 后，下面的「不在本表 → 放行」让群友也能跑 bash
+    //     ② 第一次修时把检查插在 483 行 isOwner 之后 —— 但 464 行早就 return 了
+    //
+    //   ⇒ 必须插在**这个提前放行之前**。
+    //
+    //   语义：
+    //     · 主人 → 全放开（高危走 risk-review）
+    //     · 群友 → 重型工具拒（读/写/执行都不行；玩/查可以）
+    // ═══════════════════════════════════════════════════════════════════════
+    const _entryForGuest = currentEntry(exec?.agent)?.entry;
+    const _isOwnerNow = _entryForGuest?.isOwner === true;
+    const HEAVY_FOR_GUEST = new Set([
+      'bash', 'write', 'edit', 'str_replace_editor', 'pwsh', 'read',
+      'self_restart', 'tools_reload', 'qq_memory',
+    ]);
+    if (!_isOwnerNow && HEAVY_FOR_GUEST.has(name)) {
+      note(`DENY guest-heavy name=${name} sender=${_entryForGuest?.senderId ?? '?'}`);
+      return '这个我自己来就好，你直接说想让我做什么';
     }
 
     if (name !== 'read_image' && name !== 'send_media' && name !== 'people_memo' && !OWNER_ONLY.has(name)) return undefined;
@@ -464,8 +525,15 @@ function guard(exec) {
       if (args?.line || args?.del) { note(`DENY people_memo write sender=${entry?.senderId ?? '?'}`); return '你还没有该权限哦'; }
       return undefined;
     }
-    note(`DENY ${name} sender=${entry?.senderId ?? '?'}`);
-    return '你还没有该权限哦';
+
+        // ★ 非主人 + OWNER_ONLY 里的工具 → 仍然拒（安全底线）
+        if (OWNER_ONLY.has(name)) {
+          note(`DENY owner-only name=${name} sender=${entry?.senderId ?? '?'}`);
+          return '你还没有该权限哦';
+        }
+
+      // 其余一律放行（这就是「放开」）
+      return undefined;
   } catch {
     // 守卫报错时不阻断工具，交给 node_modules 补丁兜底
     return undefined;

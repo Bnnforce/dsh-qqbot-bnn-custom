@@ -25,23 +25,69 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { dataRootOf } from '../lib/pure/envs.mjs';
-import { ownerOnlyInQQ } from './lib/owner.mjs';
+// ⚠️ 运行时副本放在 {dataRoot}/.qqbot-extensions/tools/ 下，
+//    拿不到扩展包的 ../lib/ 和 ./lib/ —— 所以这里全部内联，保持自包含。
+
 
 const APP = 'com.dsharnessmobile.shell';
 const ACTIVITY = 'com.dsharnessmobile.shell/.MainActivity';
 
+/**
+ * 主人门禁（内联版，等价于 tools/lib/owner.mjs 的 ownerOnlyInQQ）。
+ *
+ * 语义和项目其它工具完全一致：
+ *   · 非 QQ 会话 → 放行
+ *   · QQ 会话 + 白名单没配 → fail-open 放行
+ *   · QQ 会话 + 白名单配了 → 按真实主人判
+ *
+ * @returns {string|null} 拒绝时返回提示语，放行返回 null
+ */
+function ownerGate(env) {
+  try {
+    const scope = String(env?.peer?.scope ?? '');
+    if (scope !== 'group' && scope !== 'c2c') return null;
+
+    const owners = [];
+    const mgr = env?.manager;
+    const configured = mgr?.config?.groupAdmin?.owners;
+    if (Array.isArray(configured)) owners.push(...configured.map(String));
+    if (typeof mgr?.adminOwners === 'function') {
+      const more = mgr.adminOwners();
+      if (Array.isArray(more)) owners.push(...more.map(String));
+    }
+    if (Array.isArray(env?.owners)) owners.push(...env.owners.map(String));
+    if (Array.isArray(env?.caps?.owners)) owners.push(...env.caps.owners.map(String));
+    const list = [...new Set(owners.filter(Boolean))];
+
+    if (list.length === 0) return null;   // fail-open
+
+    // 显式 isOwner
+    if (env?.isOwner === true || env?.user?.isOwner === true || env?.caps?.user?.isOwner === true) return null;
+
+    let who = '';
+    for (const v of [env?.user?.openid, env?.actorOpenid, env?.openid, env?.senderOpenid, env?.sender?.openid, env?.caps?.user?.openid]) {
+      const x = String(v ?? '').trim();
+      if (x) { who = x; break; }
+    }
+    if (who && list.includes(who)) return null;
+
+    return '你还没有该权限哦';
+  } catch {
+    return null;   // 判定本身出错 → 放行（避免把主人锁在门外）
+  }
+}
+
 const DSH_HOME = process.env.DSH_HOME
   || '/data/user/0/com.dsharnessmobile.shell/files/home/.dsh';
 
+/** 数据根（优先环境变量，其次固定路径）。 */
+function dataRoot() {
+  return String(process.env.QQBOT_DATA_ROOT || '/sdcard/DSH/Bot/dshqqbot');
+}
+
 function workspaceRoot() {
-  // 和 pack-paths 的 WORKSPACE_ROOT 同源：数据根的上一级再上一级
-  try {
-    const root = dataRootOf({ dataRoot: process.env.QQBOT_DATA_ROOT || '/sdcard/DSH/Bot/dshqqbot' });
-    return join(root, '..', '..');
-  } catch {
-    return '/sdcard/DSH';
-  }
+  // 数据根是 {WORKSPACE}/Bot/dshqqbot → 上两级
+  return join(dataRoot(), '..', '..');
 }
 
 function stateDir() {
@@ -203,8 +249,8 @@ export default {
     //    和 qq_send / session_* / group_members 那些工具完全一致。
     //    ⚠️ 2026-11-27 修：原来用 isOwnerEnv 严格判，owners 没配就一律拒，
     //       连主人自己也进不来（真机实证：「你还没有该权限哦」）。)
-    const denied = ownerOnlyInQQ(env);
-    if (denied) return { ok: false, msg: denied.msg };
+    const denied = ownerGate(env);
+    if (denied) return { ok: false, msg: denied };
 
     const delay = Math.max(2, Math.min(30, Number(args?.delaySec) || 3));
     const reason = String(args?.reason ?? '').slice(0, 200);

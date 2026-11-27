@@ -64,58 +64,59 @@ export const name = 'trim-agent-tools';
  *     模型连工具都看不到，guard 也就没有机会按意图放行。
  */
 const DENY = [
-  // ── 设备面：主人 2026-11-02 已撤回 root 与虚拟屏权限，任何会话都不给 ──
-  //   guard 的 DEVICE_TOOLS + android_ 前缀检查是无条件拒绝，这里同步隐藏，
-  //   省掉这部分 schema 的 token 开销。
-  'android_capabilities', 'android_device_info', 'android_privilege_status',
-  'android_screen_list', 'android_screenshot', 'android_vdisplay_status',
-  'android_vdisplay_create', 'android_vdisplay_destroy', 'android_vdisplay_input',
-  'android_app_launch', 'android_ui_dump', 'android_ui_tree', 'android_ui_detail',
-  'android_ui_click', 'android_ui_scroll', 'android_ui_input', 'android_ui_global',
-  'android_browser_tier', 'android_web_dump', 'android_shell_exec',
-  'android_termux_channel_exec', 'android_env_prepare', 'android_env_recipe',
-  'android_toolchain_status', 'android_file_incoming_status', 'android_act_input',
+  // ══════════════════════════════════════════════════════════════════════════
+  // ★★ 2026-11-28 大改：主人要求「权限限制导致她大部分自主能力受限 →
+  //    做完整放开，但是做识别高危，动手自动审查。」
   //
-  // ── 内嵌 AI 浏览器：QQ 会话里没有正当用途 ──
+  // 原则变了：
+  //   旧 —— 不确定能不能用 → 一律裁掉（安全但死板，她什么都不敢做）
+  //   新 —— 默认放开 → 只裁「真危险」和「真没用」，高危交给 guard 的 risk-review
+  //
+  // 本次裁掉的东西分三类：
+  //   ① 设备面（android_*）—— 工具已不存在，清掉减少噪音
+  //   ② 会破坏系统的（插件管理 / 市场装包 / 上下文丢弃）
+  //   ③ 群里真没用的（浏览器 / worktree）
+  //
+  // 本次**放出来**的（从 DENY 移除）：
+  //   · terminal_*  —— 她能开持久终端（造物要保持会话状态）
+  //   · job_*       —— bash 后台任务必须靠它查结果，之前裁掉导致 background 白跑
+  //   · schedule_*  —— 她能自己排程
+  //   · goal 三件套 —— 造物要记目标
+  //   · session_search 等 —— 她该能翻自己的历史
+  //   · image/video_generate —— 造物能产出配图
+  //   · x_search    —— 查资料
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── ① 设备面：工具已不存在（2026-11-02 主人撤回 root/虚拟屏后就没了）──
+  //   保留 26 个名字只为「万一宿主回填」时能挡住；它们不占 schema（不存在就不渲染）。
+  //   ⚠️ 实际上宿主没这些工具，所以这段可以视为纯注释性兜底。
+
+  // ── ② 会破坏系统的：一律不给 ──
+  //   插件管理 / 市场装包：改了插件本体或装了新包，出问题整个 bot 起不来。
+  //   上下文丢弃：群里丢掉会话上下文 = 她失忆，属于越界能力。
+  'plugin_manager', 'cordis_inspect_list', 'cordis_inspect_query',
+  'dshmarketplace_search', 'dshmarketplace_install',
+  'context_memo', 'context_compact', 'context_drop',
+
+  // ── ③ 多智能体/编排：guard 里也在 ALWAYS_DENY_TOOLS，这里同步隐藏省 token ──
+  'subagent', 'subagent_fork', 'workflow', 'ralph',
+  'list_agents', 'send_message', 'interrupt_agent', 'list_subagent_models',
+  'spawn_teammate', 'wait_agent',
+  'team_task_create', 'team_task_get', 'team_task_list', 'team_task_update',
+
+  // ── ④ 群里真没用的 ──
+  //   浏览器：QQ 群里没有正当用途，而且很吃 token（18 个 schema）。
+  //   worktree / linux 环境：开发机才需要的东西。
   'browser_open', 'browser_navigate', 'browser_snapshot', 'browser_click',
   'browser_type', 'browser_press', 'browser_scroll', 'browser_get_text',
   'browser_screenshot', 'browser_back', 'browser_forward', 'browser_reload',
   'browser_wait', 'browser_close_tab', 'browser_follow_tab', 'browser_list_tabs',
   'browser_set_identity', 'browser_set_viewport',
-  //
-  // ── Harness 自身维护：群里不该出现 ──
-  'plugin_manager', 'cordis_inspect_list', 'cordis_inspect_query',
-  'dshmarketplace_search', 'dshmarketplace_install', 'tools_reload',
-  //
-  // ── 委派与编排：guard 里在 ALWAYS_DENY_TOOLS，一律拒 ──
-  'subagent', 'subagent_fork', 'workflow', 'ralph',
-  'list_agents', 'send_message', 'interrupt_agent', 'list_subagent_models',
-  'spawn_teammate', 'wait_agent',
-  'team_task_create', 'team_task_get', 'team_task_list', 'team_task_update',
-  //
-  // ── 跨会话检索：QQ 会话里会把别的会话内容带进来，越界 ──
-  'session_search', 'session_event_read', 'session_event_search',
-  'session_event_trace', 'session_trace',
-  //
-  // ── 终端 / 作业 / worktree：属于开发流程，QQ 里没有正当用途 ──
-  'terminal_open', 'terminal_send', 'terminal_read', 'terminal_signal',
-  'terminal_close', 'terminal_list',
-  'job_output', 'job_list', 'job_kill',
   'create_worktree', 'linux_environment_status',
-  //
-  // ── 生成类：群里发不出去（image_generate 的产物也无法直传），白烧额度 ──
-  'image_generate', 'video_generate', 'x_search',
-  //
-  // ── 会话上下文管理：群聊里没有正当用途（会改写/丢弃会话上下文）──
-  //   ★ 2026-11-20 补：预检一直告警「trim 未声明 context 工具」。
-  //   本 hook 是**denylist**，不写进 DENY 就代表"可见" —— 所以这三个确实对
-  //   QQ 群会话暴露了。宿主没有这些工具时会自动过滤（不报错），但一旦宿主升级
-  //   提供了它们，群里模型就能调用来丢弃上下文，属于越界能力。明确裁掉。
-  'context_memo', 'context_compact', 'context_drop',
-  //
-  // ── 目标 / 日程：群里定时靠扩展包的 schedule_timer（scoped），宿主这组裁掉更干净 ──
-  'create_goal', 'get_goal', 'update_goal',
-  'schedule_create', 'schedule_edit', 'schedule_list', 'schedule_view',
+
+  // ── ⑤ tools_reload：guard 里在 ALWAYS_DENY（一律拒），这里也裁掉 ──
+  //   她改完代码用 self_restart 重启，不需要热重载。
+  'tools_reload',
 ];
 
 /**
