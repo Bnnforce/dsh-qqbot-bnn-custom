@@ -29,7 +29,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { registerWithFallback } from './zz-central-scheduler.mjs';
-import { EXT_DATA } from '../lib/pack-paths.mjs';
+import { EXT_DATA, WORKSPACE_ROOT } from '../lib/pack-paths.mjs';
 import { appendLogRotating } from '../lib/log-rotate.mjs';
 
 const name = 'self-think-task';

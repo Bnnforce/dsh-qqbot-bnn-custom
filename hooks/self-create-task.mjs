@@ -34,7 +34,7 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, unlinkS
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { registerWithFallback } from './zz-central-scheduler.mjs';
-import { EXT_DATA } from '../lib/pack-paths.mjs';
+import { EXT_DATA, WORKSPACE_ROOT } from '../lib/pack-paths.mjs';
 import { appendLogRotating } from '../lib/log-rotate.mjs';
 
 const name = 'self-create-task';
@@ -44,7 +44,9 @@ const DSH_HOME = process.env.DSH_HOME
   || '/data/user/0/com.dsharnessmobile.shell/files/home/.dsh';
 
 function workspaceRoot() {
-  return process.env.QQBOT_WORKSPACE || join(DSH_HOME, '..', '..', '..', '..', 'sdcard', 'DSH');
+  // ★ 用项目统一的 WORKSPACE_ROOT（pack-paths 已处理 IS_PACK / override），
+  //   不要自己从 DSH_HOME 拼 '..' —— 拼出来是 /data/user/0/sdcard/DSH，根本不存在。
+  return process.env.QQBOT_WORKSPACE || WORKSPACE_ROOT;
 }
 function selfDir() { return join(workspaceRoot(), 'Bot', '自我'); }
 function personaDir() { return join(workspaceRoot(), 'Bot', '人格'); }
