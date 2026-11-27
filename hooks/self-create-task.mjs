@@ -194,7 +194,10 @@ function findWork() {
           if (e.isDirectory()) { stack.push(full); continue; }
           if (!/\.(mjs|js)$/.test(e.name)) continue;
           const t = readText(full);
-          const n = (t.match(/TODO|FIXME|XXX|HACK/g) || []).length;
+          // 只数「注释行里的真 TODO」。
+          // 2026-11-27 修：原来全文 match /TODO|FIXME|XXX|HACK/，
+          // 把本检测器自己的正则和说明注释也数进去了 —— 病历永远治不好自己。
+          const n = (t.match(/^\s*(?:\/\/+|\/\*+|\*|#)\s*(?:TODO|FIXME|XXX|HACK)\b/gmu) || []).length;
           if (n) { todos += n; if (files.length < 3) files.push(e.name); }
         }
       }
