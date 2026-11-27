@@ -321,7 +321,7 @@ function findWork() {
           work.push({
             kind: 'idea',
             priority: 5,
-NaN
+            detail: `群友提了 ${lines.length} 个想法：${samples.slice(0, 2).join('；') || '（没有正文）'}`,
           });
         }
       }
