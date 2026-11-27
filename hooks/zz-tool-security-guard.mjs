@@ -160,6 +160,9 @@ const OWNER_ONLY = new Set([
   //   群友发文件给她看时她需要能读那一份，但读别的任何路径仍被拒。
   //   ⚠️ 本集合语义是"只给主人"，而 read 现在是"看路径来源"，两者不能混在一起。
   'bash', 'write', 'edit', 'glob', 'grep',
+  // ★ 2026-11-27：她自己重启引擎（改完代码后）。只给主人 ——
+  //   虽然是专用工具（只做重启、带三道关），但重启会中断所有人，不能让群友触发。
+  'self_restart',
   // 2026-10-26：跨会话/主动发送/设置/记忆读写只允许主人
   'qq_send', 'session_children', 'session_create', 'session_send', 'session_watch', 'sessions_list',
   'sticker_auto',
