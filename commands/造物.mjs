@@ -62,8 +62,10 @@ export default {
       return { kind: 'text', content: lines.join('\n') };
     }
 
-    // ④ 拿 kernel（拿不到就只体检）
-    const kernel = ctx?.kernel ?? ctx?.caps?.kernel ?? null;
+    // ④ 拿 kernel（逐层兜底 —— 和 commands/子会话.mjs 的 svc() 同一套路）
+    //    ⚠️ 关键：caps 本身可能就是 kernel（能力包平铺），所以 ?? ctx?.caps 这一层不能漏。
+    const k = ctx?.caps?.kernel ?? ctx?.caps ?? ctx?.kernel ?? ctx?.ctx ?? ctx;
+    const kernel = (k && typeof k.get === 'function') ? k : null;
     if (!kernel) {
       const tail = work.length
         ? `\n\n体检发现 ${work.length} 项：\n` + work.slice(0, 5).map((w) => `· [${w.kind}] ${w.detail}`).join('\n')
