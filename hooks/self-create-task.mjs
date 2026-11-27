@@ -148,6 +148,250 @@ function todayDigest() {
   return out;
 }
 
+/**
+ * ★ 找活：不依赖 LLM 的巡检。
+ *
+ * 主人问：「没得创造也会硬创造吗？」——不会硬造，但**不会空手**。
+ * 这里先找「确实该做的事」，有就带着做，没有就诚实说没有。
+ *
+ * @returns {Array<{kind:string, priority:number, detail:string, path?:string}>}
+ */
+function findWork() {
+  const work = [];
+  const root = workspaceRoot();
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ★ 主人定的分工：
+  //   日常开发 / 构思 / 清理 / 维护  → 她自主
+  //   费用 / 环境更新（DSH 运行时）  → 人工
+  //
+  // 所以这里扫的是「项目整体健康」，不是只盯着她自己那点事。
+  // 但**做不做、做哪件，她自己定**（见 prompt：你可以改，也可以不改）。
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── ① 代码质量：TODO / FIXME / 明显烂摊子 ────────────────────────────────
+  try {
+    const codeDirs = [
+      join(root, 'Bot/dshqqbot/extension-packs/bnn-custom'),
+      join(DSH_HOME, 'plugins/dsh-bnnbotbox'),
+    ];
+    let todos = 0;
+    const files = [];
+    for (const dir of codeDirs) {
+      if (!existsSync(dir)) continue;
+      const stack = [dir];
+      let guard = 0;
+      while (stack.length && guard < 500) {
+        guard += 1;
+        const cur = stack.pop();
+        let entries = [];
+        try { entries = readdirSync(cur, { withFileTypes: true }); } catch { continue; }
+        for (const e of entries) {
+          if (e.name === 'node_modules' || e.name === '.git' || e.name === 'dist') continue;
+          const full = join(cur, e.name);
+          if (e.isDirectory()) { stack.push(full); continue; }
+          if (!/\.(mjs|js)$/.test(e.name)) continue;
+          const t = readText(full);
+          const n = (t.match(/TODO|FIXME|XXX|HACK/g) || []).length;
+          if (n) { todos += n; if (files.length < 3) files.push(e.name); }
+        }
+      }
+    }
+    if (todos >= 5) {
+      work.push({
+        kind: 'code',
+        priority: 3,
+        detail: `代码里有 ${todos} 处 TODO/FIXME（${files.join('、')}…），有些该处理了`,
+      });
+    }
+  } catch { /* ignore */ }
+
+  // ── ② 测试健康：最近有没有失败 ────────────────────────────────────────────
+  try {
+    const st = readState();
+    if (st.aftercare?.tested && st.aftercare.tested.ok === false) {
+      work.push({
+        kind: 'test',
+        priority: 5,
+        detail: `上次跑测试有失败（${st.aftercare.tested.passed}/${st.aftercare.tested.total}），得先修`,
+      });
+    }
+  } catch { /* ignore */ }
+
+  // ── ③ 数据卫生：旧备份 / 超大日志 ─────────────────────────────────────────
+  try {
+    // 旧快照（>30 天）
+    const snapBase = join(selfDir(), '.snapshot');
+    if (existsSync(snapBase)) {
+      for (const d of readdirSync(snapBase)) {
+        const t = Date.parse(d);
+        if (Number.isFinite(t) && Date.now() - t > 30 * 86400000) {
+          work.push({ kind: 'archive', priority: 2, detail: `30 天前的自我快照该归档：${d}`, path: d });
+        }
+      }
+    }
+    // 超大日志（>2MB）
+    const dataDir = join(root, 'Bot/dshqqbot/.qqbot-extensions/data');
+    if (existsSync(dataDir)) {
+      for (const f of readdirSync(dataDir)) {
+        if (!f.endsWith('.log')) continue;
+        const full = join(dataDir, f);
+        try {
+          const size = readFileSync(full).length;
+          if (size > 2 * 1024 * 1024) {
+            work.push({ kind: 'archive', priority: 2, detail: `日志太大该轮转：${f}（${(size / 1024 / 1024).toFixed(1)}MB）` });
+          }
+        } catch { /* ignore */ }
+      }
+    }
+  } catch { /* ignore */ }
+
+  // ── ④ 文档：CHANGELOG / 版本说明是不是落后了 ───────────────────────────────
+  try {
+    const repoDirs = [join(root, 'Bot/dshqqbot/extension-packs/bnn-custom')];
+    for (const d of repoDirs) {
+      if (!existsSync(d)) continue;
+      const pkg = join(d, 'package.json');
+      const chg = join(d, 'CHANGELOG.md');
+      if (existsSync(pkg) && existsSync(chg)) {
+        const ver = JSON.parse(readText(pkg)).version || '';
+        const cl = readText(chg);
+        if (ver && !cl.includes(ver)) {
+          work.push({ kind: 'doc', priority: 3, detail: `CHANGELOG 还没写 ${ver} 这版` });
+        }
+      }
+    }
+  } catch { /* ignore */ }
+
+  // ── ⑤ 她自己的：反思里的坑 / 挂着的目标 / 上次失败 ────────────────────────
+  try {
+    const refl = readText(join(selfDir(), '我的反思.md'));
+    const hits = (refl.match(/改回来/g) || []).length;
+    if (hits >= 2) {
+      work.push({ kind: 'lesson', priority: 4, detail: `反思里有 ${hits} 次「改回来」——同一个坑别栽三遍` });
+    }
+  } catch { /* ignore */ }
+
+  try {
+    const goals = readText(join(selfDir(), '我想要什么.md'));
+    const pending = (goals.match(/^\s*[-*]\s*\[ \]/gm) || []).length;
+    if (pending >= 3) {
+      work.push({ kind: 'goal', priority: 2, detail: `有 ${pending} 件挂着的目标，挑一件推一下？` });
+    }
+  } catch { /* ignore */ }
+
+  try {
+    const st = readState();
+    const fails = Array.isArray(st.failed) ? st.failed : [];
+    const real = fails.filter((f) => f && f.error && !/test|模拟/i.test(String(f.error)));
+    if (real.length) {
+      work.push({ kind: 'retry', priority: 4, detail: `上次有 ${real.length} 处没改成功：${real.map((f) => f.error).slice(0, 3).join('、')}` });
+    }
+  } catch { /* ignore */ }
+
+  // ── ⑥ 临时垃圾（这条是房子的事，但确实该清，低优先级）────────────────────
+  try {
+    const junk = readdirSync(root).filter((f) => /^\.(test|fix|tmp|wire|mk|add)/.test(f) || f.endsWith('.bak'));
+    if (junk.length >= 3) {
+      work.push({ kind: 'cleanup', priority: 1, detail: `工作区有 ${junk.length} 个临时文件堆着` });
+    }
+  } catch { /* ignore */ }
+
+  return work.sort((a, b) => b.priority - a.priority);
+}
+
+/**
+ * ★ 善后：改完必须做的收尾。
+ *
+ * 主人问：「创造完了善后会做吗？」
+ * 会。这里负责：跑测试 → 清垃圾 → 判断要不要发版。
+ *
+ * @returns {{tested?:object, cleaned:number, shouldRelease:boolean, notes:string[]}}
+ */
+async function aftercare(applied, env, opts = {}) {
+  const notes = [];
+  let cleaned = 0;
+  let tested = null;
+  let shouldRelease = false;
+
+  // ① 跑测试（改了代码才跑）
+  const touchedCode = applied.some((a) => /\.(mjs|js|cjs)$/.test(a.file || ''));
+  if (touchedCode && !opts.skipTests) {
+    try {
+      const { execFileSync } = await import('node:child_process');
+      const runner = join(workspaceRoot(), 'Bot', '维护', '05-工具', 'run-all-checks.mjs');
+      if (existsSync(runner)) {
+        const out = execFileSync('node', [runner], { timeout: 300000, encoding: 'utf8' });
+        const m = out.match(/(\d+)\/(\d+)/);
+        tested = { ok: !out.includes('❌'), passed: m ? Number(m[1]) : 0, total: m ? Number(m[2]) : 0 };
+        notes.push(tested.ok ? `测试通过 ${tested.passed}/${tested.total}` : '测试有失败，需要看');
+        if (!tested.ok) shouldRelease = false;
+      }
+    } catch (e) {
+      tested = { ok: false, error: String(e).slice(0, 100) };
+      notes.push('测试跑失败了：' + String(e).slice(0, 60));
+    }
+  }
+
+  // ② 清临时垃圾（只清自己的，别人的不碰）
+  try {
+    const root = workspaceRoot();
+    for (const e of readdirSync(root)) {
+      if (/^\.(test|fix|tmp|wire)/.test(e)) {
+        try {
+          const abs = join(root, e);
+          if (existsSync(abs)) { unlinkSync(abs); cleaned += 1; }
+        } catch { /* ignore */ }
+      }
+    }
+    if (cleaned) notes.push(`清了 ${cleaned} 个临时文件`);
+  } catch { /* ignore */ }
+
+  // ③ 归档（旧快照 / 超大日志）
+  try {
+    const archDir = join(selfDir(), '.archive');
+    // 旧快照
+    const snapBase = join(selfDir(), '.snapshot');
+    if (existsSync(snapBase)) {
+      for (const d of readdirSync(snapBase)) {
+        const t = Date.parse(d);
+        if (Number.isFinite(t) && Date.now() - t > 30 * 86400000) {
+          try {
+            mkdirSync(archDir, { recursive: true });
+            // 只打标记（不真搬，避免跨设备 rename 失败）
+            writeFileSync(join(archDir, `archived-${d}.txt`), `快照 ${d} 已超过 30 天，可删。
+`, 'utf8');
+            notes.push(`标记了旧快照 ${d} 待归档`);
+          } catch { /* ignore */ }
+        }
+      }
+    }
+    // 超大日志
+    const dataDir = join(workspaceRoot(), 'Bot/dshqqbot/.qqbot-extensions/data');
+    if (existsSync(dataDir)) {
+      for (const f of readdirSync(dataDir)) {
+        if (!f.endsWith('.log')) continue;
+        try {
+          const full = join(dataDir, f);
+          const size = readFileSync(full).length;
+          if (size > 5 * 1024 * 1024) {
+            notes.push(`日志 ${f} 已 ${(size / 1024 / 1024).toFixed(1)}MB，下次该轮转`);
+          }
+        } catch { /* ignore */ }
+      }
+    }
+  } catch { /* ignore */ }
+
+  // ④ 判断要不要发版
+  //    规则：改了代码 + 测试通过 + 改的是仓库里的文件 → 提示可以考虑发版
+  if (touchedCode && tested?.ok && applied.some((a) => String(a.file || '').includes('.repos/'))) {
+    shouldRelease = true;
+    notes.push('改了仓库代码且测试过了，可以考虑发版');
+  }
+
+  return { tested, cleaned, shouldRelease, notes };
+}
+
 /** 读造物规范 + 造物手册（规范讲心态，手册讲事实）。 */
 function readSpec() {
   const spec = readText(join(selfDir(), '我的造物规范.md'));
@@ -227,14 +471,35 @@ async function proposeWithLLM(kernel, ctx) {
       ? ctx.digest.map((g) => `群${g.group}：\n${g.msgs.map((m) => '  ' + m).join('\n')}`).join('\n\n').slice(0, 3000)
       : '（今天很安静，没人说话）',
     '',
-    '## 现在，回答我',
+    ...(ctx.work && ctx.work.length ? [
+      '## 系统体检结果（只是参考）',
+      ...ctx.work.map((w) => `- [${w.kind}] ${w.detail}`),
+      '',
+    ] : []),
+    '## 你的分工（主人定的）',
     '',
-    '按造物规范，问自己：',
-    '1. 今天有什么让我别扭的？（具体到一句话、一个瞬间）',
-    '2. 这是我哪里没写对？',
-    '3. 改哪一句、改成什么？',
+    '| 你管 | 不用你管 |',
+    '|---|---|',
+    '| 日常开发（写代码/修 bug/优化） | 费用 |',
+    '| 构思（想新功能/新玩法） | DSH 运行时升级（环境更新） |',
+    '| 清理（垃圾/归档/整理） | 手机系统层面的事 |',
+    '| 维护（跑测试/更新文档/发版） | |',
     '',
-    '**如果没有值得改的，就返回空数组。不要为了改而改。**',
+    '主人留了这么多前期准备，就是给你发挥的。',
+    '',
+    '## 现在轮到你了',
+    '',
+    '上面这些是素材，不是任务单。',
+    '你可以从里面挑，也可以完全不理。',
+    '',
+    '想干什么都行 —— 改点东西、造点东西、理一理、修一修，',
+    '或者就是自己琢磨出点什么。',
+    '',
+    '**也可以什么都不干。**',
+    '',
+    '这不是 KPI，是你自己的时间。',
+    '没想动就返回空数组，明天再说。',
+    '不用为了让人看到变化而做 —— 那样做出来的是表演。',
     '',
     '只输出 JSON，不要任何解释：',
     '```json',
@@ -242,9 +507,11 @@ async function proposeWithLLM(kernel, ctx) {
     '  "reason": "今天为什么想改（一句话，具体到事）",',
     '  "changes": [',
     '    {',
-    '      "file": "Bot/自我/我是谁.md",',
-    '      "old": "要替换的原句（必须和文件里完全一致）",',
-    '      "new": "改成什么",',
+    '      "action": "replace | append | create | delete",',
+    '      "file": "改哪个文件（相对工作区或绝对路径）",',
+    '      "old": "replace 时必填：要替换的原句（必须完全一致）",',
+    '      "new": "改成什么 / 追加什么",',
+    '      "content": "create 时必填：新文件的完整内容",',
     '      "why": "为什么这么改"',
     '    }',
     '  ]',
@@ -305,12 +572,14 @@ function parseProposal(raw) {
       .filter((c) => c && typeof c === 'object')
       .slice(0, 3)                                 // 单次最多 3 处
       .map((c) => ({
+        action: String(c.action ?? '').toLowerCase() || (c.old ? 'replace' : 'append'),
         file: String(c.file ?? ''),
         old: String(c.old ?? ''),
         new: String(c.new ?? ''),
+        content: String(c.content ?? ''),
         why: String(c.why ?? '').slice(0, 200),
       }))
-      .filter((c) => c.file && c.new),
+      .filter((c) => c.file && (c.new || c.content || c.action === 'delete')),
   };
 }
 
@@ -376,43 +645,85 @@ function verifyFile(abs) {
 }
 
 /**
- * 应用一处改动（带备份、验证、自动回滚）。
+ * 应用一处改动（支持改已有 / 新建 / 删除）。
+ *
+ * action:
+ *   · replace  —— 替换 old（默认，old 必填）
+ *   · append   —— 追加到末尾（old 留空）
+ *   · create   —— 新建文件（content 必填）
+ *
+ * ★ 全部走：备份 → 执行 → 验证 → 失败回滚
  */
 function applyChange(change) {
   if (!isEditable(change.file)) return { ok: false, error: 'outside-workspace' };
-  if (change.new.length > 800) return { ok: false, error: 'too-long' };
 
   const abs = resolveTarget(change.file);
-  if (!existsSync(abs)) return { ok: false, error: 'file-missing' };
-
+  const action = String(change.action || (change.old ? 'replace' : 'append')).toLowerCase();
   const before = readText(abs);
+  const exists = existsSync(abs);
+
+  // ── 新建 ────────────────────────────────────────────────────────────────
+  if (action === 'create') {
+    if (exists) return { ok: false, error: 'already-exists' };
+    const content = String(change.content ?? change.new ?? '');
+    if (!content.trim()) return { ok: false, error: 'empty-content' };
+    if (content.length > 8000) return { ok: false, error: 'too-long' };
+
+    try {
+      // 建父目录
+      const dir = abs.slice(0, abs.lastIndexOf('/'));
+      if (dir) mkdirSync(dir, { recursive: true });
+
+      writeFileSync(abs, content, 'utf8');
+      const v = verifyFile(abs);
+      if (!v.ok) {
+        try { unlinkSync(abs); } catch { /* ignore */ }
+        return { ok: false, error: v.error, rolledBack: true };
+      }
+      return { ok: true, applied: true, created: true };
+    } catch (e) {
+      try { if (existsSync(abs)) unlinkSync(abs); } catch { /* ignore */ }
+      return { ok: false, error: `create-failed: ${String(e).slice(0, 60)}` };
+    }
+  }
+
+  // ── 删除 ────────────────────────────────────────────────────────────────
+  if (action === 'delete') {
+    if (!exists) return { ok: false, error: 'file-missing' };
+    const bk = backup(abs);
+    if (!bk) return { ok: false, error: 'backup-failed' };
+    try {
+      unlinkSync(abs);
+      return { ok: true, applied: true, deleted: true, backup: bk };
+    } catch (e) {
+      return { ok: false, error: `delete-failed: ${String(e).slice(0, 60)}` };
+    }
+  }
+
+  // ── 改已有 ──────────────────────────────────────────────────────────────
+  if (!exists) return { ok: false, error: 'file-missing' };
   if (!before) return { ok: false, error: 'file-empty' };
+  if (String(change.new ?? '').length > 2000) return { ok: false, error: 'too-long' };
 
   let after;
-  if (!change.old) {
-    after = `${before.trimEnd()}\n\n${change.new.trim()}\n`;
+  if (action === 'append' || !change.old) {
+    after = `${before.trimEnd()}\n\n${String(change.new ?? '').trim()}\n`;
   } else {
     if (!before.includes(change.old)) return { ok: false, error: 'old-not-found' };
     after = before.replace(change.old, change.new);
     if (after === before) return { ok: false, error: 'no-change' };
   }
 
-  // ① 备份（改前）
   const bk = backup(abs);
   if (!bk) return { ok: false, error: 'backup-failed' };
 
   try {
-    // ② 写入
     writeFileSync(abs, after, 'utf8');
-
-    // ③ 验证（含语法检查）
     const v = verifyFile(abs);
     if (!v.ok) {
-      // ④ 不合格 → 自动回滚
       try { writeFileSync(abs, before, 'utf8'); } catch { /* ignore */ }
       return { ok: false, error: v.error, rolledBack: true };
     }
-
     return { ok: true, applied: true, backup: bk };
   } catch (e) {
     try { writeFileSync(abs, before, 'utf8'); } catch { /* ignore */ }
@@ -458,13 +769,16 @@ async function createOnce(env = {}, opts = {}) {
     return { ok: true, skipped: 'no-spec' };
   }
 
-  // ② 收集上下文
+  // ② 收集上下文（含「找到的活」）
+  const work = findWork();
   const ctx = {
     spec,
     currentSelf: readCurrentSelf(),
     reflection: readRecentReflection(),
     digest: todayDigest(),
+    work,
   };
+  if (work.length) diag('found-work', { count: work.length, kinds: work.map((w) => w.kind) });
 
   // ③ 让 LLM 提案（测试可直接注入 opts.proposal）
   let proposal = null;
@@ -477,9 +791,15 @@ async function createOnce(env = {}, opts = {}) {
   }
 
   if (!proposal) {
-    diag('skip', { reason: 'LLM 不可用或没有提案' });
-    writeState({ lastDay: today, lastAt: new Date().toISOString(), result: 'no-llm' });
-    return { ok: true, skipped: 'no-llm' };
+    // 没 LLM 不等于空手：找到的活照样记下来，明天/人来看
+    diag('no-llm', { workCount: work.length });
+    writeState({
+      lastDay: today,
+      lastAt: new Date().toISOString(),
+      result: 'no-llm',
+      work: work.slice(0, 10),
+    });
+    return { ok: true, skipped: 'no-llm', work };
   }
 
   if (!proposal.changes.length) {
@@ -497,7 +817,16 @@ async function createOnce(env = {}, opts = {}) {
     else failed.push({ file: ch.file, error: r.error });
   }
 
-  // ⑤ 记录
+  // ⑤ 善后（跑测试 / 清垃圾 / 判断发版）
+  let care = null;
+  try {
+    care = await aftercare(applied, env, opts);
+    if (care.notes.length) diag('aftercare', { notes: care.notes, cleaned: care.cleaned });
+  } catch (e) {
+    care = { notes: ['善后失败: ' + String(e).slice(0, 60)], cleaned: 0, shouldRelease: false };
+  }
+
+  // ⑥ 记录
   if (applied.length) logChange(today, proposal.reason, applied);
 
   writeState({
@@ -505,17 +834,27 @@ async function createOnce(env = {}, opts = {}) {
     lastAt: new Date().toISOString(),
     result: applied.length ? 'changed' : 'all-failed',
     reason: proposal.reason,
-    applied: applied.map((a) => ({ file: a.file, why: a.why })),
+    applied: applied.map((a) => ({ file: a.file, action: a.action, why: a.why })),
     failed,
+    aftercare: care,
+    work,
   });
 
   diag('done', { applied: applied.length, failed: failed.length, reason: proposal.reason.slice(0, 80) });
 
-  return { ok: true, changed: applied.length, failed, reason: proposal.reason, applied };
+  return {
+    ok: true,
+    changed: applied.length,
+    failed,
+    reason: proposal.reason,
+    applied,
+    aftercare: care,
+    work,
+  };
 }
 
 /** 导出给测试/命令用。 */
-export { createOnce, todayDigest, parseProposal, isEditable, VALIDATE_STRICT };
+export { createOnce, todayDigest, parseProposal, isEditable, findWork, aftercare, VALIDATE_STRICT };
 
 /**
  * hook 入口。
