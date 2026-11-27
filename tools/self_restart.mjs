@@ -26,7 +26,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { dataRootOf } from '../lib/pure/envs.mjs';
-import { isOwnerEnv } from './lib/owner.mjs';
+import { ownerOnlyInQQ } from './lib/owner.mjs';
 
 const APP = 'com.dsharnessmobile.shell';
 const ACTIVITY = 'com.dsharnessmobile.shell/.MainActivity';
@@ -198,8 +198,13 @@ export default {
   },
 
   async run(args = {}, env = {}) {
-    // ① 只给主人
-    if (!isOwnerEnv(env)) return { ok: false, msg: '你还没有该权限哦' };
+    // ① 只给主人（用项目统一门禁 ownerOnlyInQQ ——
+    //    它的语义是「QQ 会话里按真实主人白名单判，白名单没配时 fail-open」，
+    //    和 qq_send / session_* / group_members 那些工具完全一致。
+    //    ⚠️ 2026-11-27 修：原来用 isOwnerEnv 严格判，owners 没配就一律拒，
+    //       连主人自己也进不来（真机实证：「你还没有该权限哦」）。)
+    const denied = ownerOnlyInQQ(env);
+    if (denied) return { ok: false, msg: denied.msg };
 
     const delay = Math.max(2, Math.min(30, Number(args?.delaySec) || 3));
     const reason = String(args?.reason ?? '').slice(0, 200);
