@@ -39,6 +39,20 @@ const CONFIG_NAME = 'self-evolve-config.json';
 /** metrics 快照文件（本扩展自己写）。 */
 const METRICS_FILE = join(EXT_DATA, 'persona-evolution', 'metrics.jsonl');
 
+/** ★ R9：自我文件（给 Feedback 审查用）。 */
+const DSH_HOME_X = process.env.DSH_HOME
+  || '/data/user/0/com.dsharnessmobile.shell/files/home/.dsh';
+const SELF_DIR_X = join(DSH_HOME_X, '..', '..', '..', '..', 'sdcard', 'DSH', 'Bot', '自我');
+const FACTS_FILE = join(SELF_DIR_X, '我知道的.md');
+const REFLECT_FILE = join(SELF_DIR_X, '我的反思.md');
+
+/** 读一个自我文件（读不到返回空串）。 */
+function readSelfFile(f) {
+  try {
+    return existsSync(f) ? String(readFileSync(f, 'utf8') ?? '').slice(0, 4000) : '';
+  } catch { return ''; }
+}
+
 /** 配置文件路径。 */
 const CONFIG_FILE = join(EXT_DATA, CONFIG_NAME);
 
@@ -50,6 +64,7 @@ const DSH_HOME = process.env.DSH_HOME
 const PLUGIN_STATE_DIR = join(DSH_HOME, 'data', 'dsh-anti-ai-persona', 'state');
 
 /** 插件 evolution-auto.js 绝对路径（动态 import，缺席则跳过）。 */
+const PLUGIN_DIR = join(DSH_HOME, 'plugins', 'dsh-bnnbotbox');
 const PLUGIN_AUTO_JS = join(DSH_HOME, 'plugins', 'dsh-bnnbotbox', 'lib', 'persona', 'r4', 'evolution-auto.js');
 
 function diag(event, data = {}) {
@@ -126,12 +141,29 @@ export async function run(env) {
         return;
       }
 
-      // ⑤ 调 evolveOnce 落地自改
+      // ⑤ ★ R9：加载 Feedback（独立审查者）
+      //    逻辑在插件侧 evolution-feedback.js，
+      //    按**依赖注入**传给 evolveOnce（插件侧不直接 import，保住静态断言）。
+      let reviewProposal = null;
+      try {
+        const FB = await import(`file://${PLUGIN_DIR}/lib/persona/r4/evolution-feedback.js`);
+        if (typeof FB.reviewProposal === 'function') {
+          const facts = readSelfFile(FACTS_FILE);
+          const reflections = readSelfFile(REFLECT_FILE);
+          reviewProposal = (proposal) => FB.reviewProposal(proposal, { facts, reflections });
+          diag('feedback-loaded', { factsChars: facts.length, reflChars: reflections.length });
+        }
+      } catch (e) {
+        diag('feedback-missing', { err: e instanceof Error ? e.message.slice(0, 100) : String(e).slice(0, 100) });
+      }
+
+      // ⑥ 调 evolveOnce 落地自改（带 Feedback）
       const result = await AUTO.evolveOnce({
         stateDir: PLUGIN_STATE_DIR,
         config: { selfEvolve: true },
         snapshots,
         now: Date.now(),
+        ...(reviewProposal ? { reviewProposal } : {}),
       });
 
       if (!result.ok) {
