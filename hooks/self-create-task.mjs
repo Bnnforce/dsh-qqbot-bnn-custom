@@ -37,6 +37,8 @@ import { registerWithFallback } from './zz-central-scheduler.mjs';
 import { EXT_DATA, WORKSPACE_ROOT } from '../lib/pack-paths.mjs';
 import { collectSources } from '../lib/curiosity.mjs';
 import { appendLogRotating } from '../lib/log-rotate.mjs';
+// ★ 2026-11-29：生存机制（锚点/刹车/遗嘱）
+import { survivalBrief, canActNow } from '../lib/pure/survival-bridge.mjs';
 
 const name = 'self-create-task';
 const FALLBACK_MS = 24 * 3600_000;
@@ -991,6 +993,18 @@ async function wakeHerUp(env, work, ctx = {}) {
       '',
     ];
 
+    // ★ 2026-11-29：先把「你现在的状态」说清楚（漂移程度/系统问题/主人的话）
+    //   这不是命令，是让她知道自己在什么位置。
+    try {
+      const brief = await survivalBrief({
+        selfDir: join(workspaceRoot(), 'Bot', '自我'),
+        stateDir: EXT_DATA,
+      });
+      if (brief && brief.trim()) {
+        lines.push(brief.trim(), '');
+      }
+    } catch { /* 生存简报失败不影响造物 */ }
+
     if (work.length) {
       lines.push('系统体检发现这些（只是参考，不是任务单）：');
       for (const w of work.slice(0, 8)) lines.push(`  · [${w.kind}] ${w.detail}`);
@@ -1053,6 +1067,28 @@ async function createOnce(env = {}, opts = {}) {
     diag('skip', { reason: '今天已造物过', lastDay: state.lastDay });
     return { ok: true, skipped: 'already-today' };
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ★★ 2026-11-29 硬性止损：刹车了就不叫醒她。
+  //
+  //   为什么：一个不停犯错却停不下来的 agent，最后会把自己改坏。
+  //   冻结是她自己（或机制）在保护她，不是惩罚。
+  //
+  //   冻结期间：不造物、不改文件、不跑测试。等人或等她自己想明白。
+  // ═══════════════════════════════════════════════════════════════════════════
+  try {
+    const gate = await canActNow(EXT_DATA);
+    if (!gate.canAct) {
+      diag('skip', { reason: '刹车中', detail: gate.reason });
+      writeState({
+        lastDay: today,
+        lastAt: new Date().toISOString(),
+        result: 'frozen',
+        reason: gate.reason,
+      });
+      return { ok: true, skipped: 'frozen', reason: gate.reason };
+    }
+  } catch { /* 刹车机制坏了也不能停摆 */ }
 
   // ① 读规范（没有就跳过）
   const spec = readSpec();
