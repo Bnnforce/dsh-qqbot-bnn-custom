@@ -22,7 +22,7 @@
  *     "minTotalLen": 24, "minBubbleLen": 8, "splitOnPunct": true }
  * 测试可用 QQBOT_SPLIT_DELAY_MIN / QQBOT_SPLIT_DELAY_MAX 覆盖延迟。
  *
- * ⚠️ 2026-11-25 生产已关闭（`enabled: false`）
+ * ★ 2026-11-28 生产已开启：11-25 关闭的 bug 已修（ctx.send 没传 target → 后续被静默拒发）
  *   现象：主动心跳回合里模型输出两段，群里只发出**最后一段**，第一段凭空消失
  *        （msg-history 无记录、台账有完整原文）。
  *   已排查：拆段逻辑本身正确（真实文本复现可拆 2 条）；出站链 45/47/50/55/56/99
@@ -53,7 +53,7 @@ const CONFIG_FILE = join(EXT_DATA, 'split-bubbles-config.json');
 const DEFAULT_CONFIG = {
   // ★ 2026-11-25：默认关闭。主动心跳回合拆两段时第一段会被吞（详见文件头说明），
   //   根因未定位前不冒险。想恢复：配置里写 "enabled": true，或直接改这里。
-  enabled: false,
+  enabled: true,
   maxBubbles: 3,
   delayMin: 800,
   delayMax: 1500,
@@ -267,6 +267,24 @@ export default async function onOutbound(ctx, next) {
     }
 
     const [first, ...rest] = bubbles;
+      // EXPLICIT-TARGET：把 target 钉住，不靠 lastCtx 回落
+      const sendTarget = (() => {
+        try {
+          const t = ctx?.target ?? {};
+          const scope = String(t.scope ?? '');
+          const id = String(t.targetId ?? t.peerId ?? '');
+          if (!scope || !id) return null;
+          const out = { scope, targetId: id };
+          if (t.msgId) out.msgId = String(t.msgId);
+          return out;
+        } catch { return null; }
+      })();
+
+      if (!sendTarget) {
+        // 拿不到 target ⇒ 宁可不拆，也不能让气泡静默消失
+        try { ctx.note?.('拆分跳过：拿不到本条出站的 target（避免静默拒发）'); } catch { /* ignore */ }
+        return next();
+      }
     try { ctx.rewrite(first); } catch { return next(); }
     // ★ 2026-11-14：真正拆了才记窗口 —— 上面"不拆/合并"的分支不占窗口，
     //   否则同回合第一段太短没拆、第二段够长该拆时会被自己挡掉。
@@ -303,14 +321,33 @@ export default async function onOutbound(ctx, next) {
       return next();
     }
 
-    try {
-      ctx.background?.(async () => {
-        for (const bubble of safeRest) {
-          await new Promise((r) => setTimeout(r, randomDelay(cfg)));
-          try { await ctx.send(bubble); } catch { /* 单条失败不影响后续 */ }
-        }
-      });
-    } catch { /* 连调度都失败 ⇒ 只发第一条，不冒险乱序 */ }
+      // ═══════════════════════════════════════════════════════════════════
+      // ★★ 2026-11-28 修真 bug（主人 11-25 报「第一段被吞」的根因）
+      //
+      //   原来写的是 ctx.send(bubble) —— 没传 target。
+      //   上游 sendViaOutboundChannel 的判定：
+      //     const target = (opts.target ?? (allowFallback ? lastCtx?.target : null) ?? null);
+      //     if (!sender || !target) { rejectedNoTarget++; return false; }  ← 静默拒发
+      //
+      //   lastCtx 是模块级、跨会话的，心跳回合里常常为 null 或指向别的会话。
+      //   于是后续气泡全部被拒，主人只看到第一段 ⇒ 误判成「第一段被吞」。
+      //
+      //   修法：显式传 target（上游签名支持 ctx.send(text, { target })）。
+      // ═══════════════════════════════════════════════════════════════════
+
+      try {
+        ctx.background?.(async () => {
+          for (const bubble of safeRest) {
+            await new Promise((r) => setTimeout(r, randomDelay(cfg)));
+            try {
+              const ok = await ctx.send(bubble, { target: sendTarget });
+              if (ok === false) {
+                try { ctx.note?.('后续气泡被上游拒发（target 无效或配额用尽）'); } catch { /* ignore */ }
+              }
+            } catch { /* 单条失败不影响后续 */ }
+          }
+        });
+      } catch { /* 连调度都失败 ⇒ 只发第一条，不冒险乱序 */ }
 
     try { ctx.note?.(`拆成 ${bubbles.length} 个气泡 ${targetKey(ctx)}`); } catch { /* ignore */ }
   } catch { /* 任何异常都按原文发 */ }
