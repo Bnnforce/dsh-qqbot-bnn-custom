@@ -46,7 +46,8 @@ const FALLBACK_MS = 10 * 60 * 1000;
  * 自抽的价值在「她自己说一句」，不在"给谁发奖"。
  * 所以：不发积分（积分必须有真实属主）、不写图鉴（图鉴是用户收集）。
  */
-const SELF_DRAW_POOL = ['quote', 'secret', 'image', 'song', 'sticker'];
+// ★ 2026-11-28：song 已随语音功能整体归档，从奖品池移除
+const SELF_DRAW_POOL = ['quote', 'secret', 'image', 'sticker'];
 
 /** 懒加载核心模块（支持热重载）。 */
 async function core() {
