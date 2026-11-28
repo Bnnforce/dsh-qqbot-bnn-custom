@@ -405,7 +405,19 @@ function guard(exec) {
       return '群聊里不使用多智能体/子代理/编排工具（主人调试请在 DSH 里进行）';
     }
 
-    if (DEVICE_TOOLS.has(name) || name.startsWith('android_')) {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ★★ 2026-11-29 主人要求「放开 root」，但要精确放开不是一刀切：
+    //
+    //   原来：`name.startsWith('android_')` → 一律拒（包括 android_root_exec）
+    //   现在：先判 ROOT_ALLOWED，是它就跳过设备拦截，走后面的风险审查。
+    //
+    //   只放 android_root_exec 一个 —— 它是主人明确要的「自己动手改系统」的能力。
+    //   屏幕/UI/虚拟屏那些仍然拦（主人 11-02 撤回的，且她也不需要）。
+    // ═══════════════════════════════════════════════════════════════════════════
+    const ROOT_ALLOWED = new Set(['android_root_exec']);
+    const isRootTool = ROOT_ALLOWED.has(name);
+
+    if (!isRootTool && (DEVICE_TOOLS.has(name) || name.startsWith('android_'))) {
       note(`DENY device-tool name=${name} sender=${currentEntry(exec?.agent)?.entry?.senderId ?? '?'}`);
       return '设备操作能力已停用（主人已撤回屏幕权限）';
     }
