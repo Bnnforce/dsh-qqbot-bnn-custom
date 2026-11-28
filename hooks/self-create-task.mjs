@@ -35,6 +35,7 @@ import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { registerWithFallback } from './zz-central-scheduler.mjs';
 import { EXT_DATA, WORKSPACE_ROOT } from '../lib/pack-paths.mjs';
+import { collectSources } from '../lib/curiosity.mjs';
 import { appendLogRotating } from '../lib/log-rotate.mjs';
 
 const name = 'self-create-task';
@@ -279,9 +280,80 @@ function findWork() {
 
   try {
     const goals = readText(join(selfDir(), '我想要什么.md'));
-    const pending = (goals.match(/^\s*[-*]\s*\[ \]/gm) || []).length;
-    if (pending >= 3) {
-      work.push({ kind: 'goal', priority: 2, detail: `有 ${pending} 件挂着的目标，挑一件推一下？` });
+    // ★★ 2026-11-28 升级：从「数一数」改成「三层分解检测」
+    //
+    //   原来只统计 [ ] 的数量，>=3 就提醒。
+    //   问题：她不知道「该拆什么」，只能看到「有3件事挂着」。
+    //
+    //   现在分三层看：
+    //     长期有、本周空 → 该从长期拆一条到本周
+    //     本周有、今天空 → 该从本周拆一条到今天
+    //     今天有未完成的 → 该做今天的事
+    // ★ 内联解析（不 import 插件模块，避免 ESM/require 混用）
+    //   规则和 goal-store 的别名表一致：长期/本周/今天/已完成
+    const parseGoalsSync = (text) => {
+      const out = { long: [], week: [], today: [], done: [] };
+      const ALIAS = {
+        long: ['长期目标', '长期（几个月）', '长期(几个月)', '长期', '长远'],
+        month: ['本月目标', '本月', '这个月'],
+        week: ['本周目标', '本周', '这周', '本周计划'],
+        today: ['今天', '今日', '今天目标', '今日计划'],
+        done: ['已完成', '做掉的'],
+      };
+      const keyOf = (title) => {
+        const t = String(title || '').trim();
+        for (const [k, list] of Object.entries(ALIAS)) {
+          if (list.some((a) => t === a || t.startsWith(a))) return k;
+        }
+        return null;
+      };
+      for (const block of String(text || '').split(/\n(?=## )/)) {
+        const m = block.match(/^##\s*(.+)$/m);
+        if (!m) continue;
+        const target = keyOf(m[1]);
+        if (!target) continue;
+        const body = block.replace(/^##\s*.+\n?/m, '');
+        for (const line of body.split('\n')) {
+          const t = line.trim();
+          if (!t.startsWith('-')) continue;
+          const item = t.replace(/^-\s*/, '').trim();
+          if (!item) continue;
+          const isDone = /^\[x\]/i.test(item);
+          const clean = item.replace(/^\[[ x]\]\s*/i, '').trim();
+          const isNoise = /^[-—]{2,}$/.test(clean) || /^（.*）$/.test(clean);
+          if (!clean || isNoise) continue;
+          if (target === 'done') out.done.push(clean);
+          else out[target].push({ text: clean, done: isDone });
+        }
+      }
+      return out;
+    };
+
+    {
+      const parsed = parseGoalsSync(goals);
+      const longOpen = (parsed.long || []).filter((g) => !g.done).length;
+      const weekOpen = (parsed.week || []).filter((g) => !g.done).length;
+      const todayOpen = (parsed.today || []).filter((g) => !g.done).length;
+
+      if (weekOpen === 0 && longOpen > 0) {
+        work.push({
+          kind: 'goal-split',
+          priority: 4,
+          detail: `长期有 ${longOpen} 件，本周是空的 —— 该从长期拆一件到本周了`,
+        });
+      } else if (todayOpen === 0 && weekOpen > 0) {
+        work.push({
+          kind: 'goal-split',
+          priority: 3,
+          detail: `本周有 ${weekOpen} 件，今天是空的 —— 该从本周拆一件到今天`,
+        });
+      } else if (todayOpen > 0) {
+        work.push({
+          kind: 'goal-today',
+          priority: 3,
+          detail: `今天有 ${todayOpen} 件事挂着，先做掉`,
+        });
+      }
     }
   } catch { /* ignore */ }
 
@@ -337,6 +409,89 @@ function findWork() {
       work.push({ kind: 'inspiration', priority: 3, detail: `灵感本里有 ${pending} 条没动过的想法` });
     }
   } catch { /* ignore */ }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ★★ 2026-11-28 新增触发（研究结论：缺的不是自由度，是动机/方向/复用/不漂）
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ── ⑨ 好奇驱动（最高优先级：这是「动机」，不是「任务」）─────────────────
+  //   研究依据：MIT 荒岛实验（arXiv 2610.07130）证明零任务下靠信息增益驱动，
+  //            学到的技能可迁移。好奇心是自主动机的唯一可持续来源。
+  try {
+    const f = join(workspaceRoot(), 'Bot', '自我', '我的好奇.md');
+    const t = readText(f);
+    const pending = (t.match(/^\s*- \[ \] .+$/gm) || []).length;
+    if (pending > 0) {
+      work.push({
+        kind: 'curiosity',
+        priority: 8,   // 比群友提议还高：这是她自己想知道的事
+        detail: `好奇队列有 ${pending} 件事没搞明白，挑一件看看`,
+      });
+    }
+  } catch { /* ignore */ }
+
+  // ── ⑩ 反思驱动（同类失败 ≥2 次 → 说明真有问题）────────────────────────
+  //   研究依据：Reflexion 的核心是「失败必须结构化复用」，
+  //            散文式反思不复用等于没反思。
+  try {
+    const f = join(workspaceRoot(), 'Bot', '自我', '我的反思.md');
+    const t = readText(f);
+    // 找「同类」失败：把每条反思的动词+名词组合简单归组
+    const fails = (t.match(/改回来|又错|失败|搞砸|不对/g) || []).length;
+    if (fails >= 2) {
+      work.push({
+        kind: 'reflect',
+        priority: 7,
+        detail: `反思里出现 ${fails} 次失败记录，可能有同一个坑在反复踩 —— 该提炼成技能了`,
+      });
+    }
+  } catch { /* ignore */ }
+
+  // ── ⑪ 元认知重校准（我拿不准的事挂太久 → 该对账了）───────────────────
+  //   研究依据：Recalibrate —— 持久 agent 会跨会话漂移，
+  //            「我以为是知道的事」其实只是「没人反驳过」。
+  try {
+    const f = join(workspaceRoot(), 'Bot', '自我', '我拿不准的事.md');
+    const t = readText(f);
+    const pending = (t.match(/^\s*- \[ \] .+$/gm) || []).length;
+    if (pending >= 3) {
+      work.push({
+        kind: 'recalibrate',
+        priority: 6,
+        detail: `有 ${pending} 件「拿不准」挂着，该拿新证据对账了（确认的移到我知道的，推翻的改掉）`,
+      });
+    }
+  } catch { /* ignore */ }
+
+  // ── ⑫ 技能沉淀（验证 1 次的技能 → 该再验一次升为规则）─────────────────
+  try {
+    const f = join(workspaceRoot(), 'Bot', '自我', '我的技能.md');
+    const t = readText(f);
+    const verifying = (t.match(/成功次数\*\*[：:]\s*1/g) || []).length;
+    if (verifying >= 1) {
+      work.push({
+        kind: 'promote',
+        priority: 5,
+        detail: `有 ${verifying} 条技能只验证过 1 次，再验一次就能升成规则`,
+      });
+    }
+  } catch { /* ignore */ }
+
+  // ── ⑨ 好奇队列（★ 自主动机的核心来源）────────────────────────────────────
+  //   MIT 荒岛实验：零奖励下，内在动机（信息增益）足以驱动探索。
+  //   不确定度高的优先；探索完写回「我知道了什么」。
+  try {
+    const src = collectSources();
+    if (src.items.length) {
+      const top = src.items.slice(0, 3);
+      work.push({
+        kind: 'curiosity',
+        priority: 6,   // 比群友提议(5)还高 —— 自己的好奇最该先满足
+        detail: `有 ${src.items.length} 件事想弄明白，最想的是「${top[0].text.slice(0, 40)}」`,
+        items: top,
+      });
+    }
+  } catch { /* 好奇读取失败不影响其他活 */ }
 
   return work.sort((a, b) => b.priority - a.priority);
 }
@@ -794,6 +949,118 @@ function logChange(date, reason, applied) {
 /**
  * 主流程。
  */
+/**
+ * 叫醒会话里的她（hook 拿不到 LLM 时的正确解法）。
+ *
+ * 研究依据：hitl-guardrail 的「模型建议，策略决定」——
+ *   hook 做策略（体检/组装），模型做事（真正动手）。
+ *
+ * @param {object} env  hook 的 env（含 caps.wakeTo）
+ * @param {Array} work  体检结果
+ * @param {object} ctx  上下文（自我文件、规范）
+ * @returns {Promise<{ok:boolean, reason?:string, gid?:string}>}
+ */
+async function wakeHerUp(env, work, ctx = {}) {
+  try {
+    const caps = env?.caps ?? env ?? {};
+    const wakeTo = caps.wakeTo ?? env?.wakeTo;
+    if (typeof wakeTo !== 'function') {
+      diag('wake-skip', { reason: 'no-wakeTo' });
+      return { ok: false, reason: 'no-wakeTo' };
+    }
+
+ 
+ 
+ 
+ 
+    // 找一个群（不用 statSync：实测在 hook 上下文里会抛错被吞）
+    let gid = '';
+    // 改用「有最新日期文件的群」判据，纯文件名比较，无系统调用。
+    try {
+      const base = join(EXT_DATA, 'msg-archive');
+      if (existsSync(base)) {
+        const groups = readdirSync(base).filter((d) => d.startsWith('group_'));
+        let bestGid = '';
+        let bestDay = '';
+        for (const g of groups) {
+          try {
+            const files = readdirSync(join(base, g)).filter((f) => f.endsWith('.jsonl')).sort();
+            const latest = files.length ? files[files.length - 1] : '';
+            if (latest > bestDay) { bestDay = latest; bestGid = g; }
+          } catch { /* 这个群读不了就跳过 */ }
+        }
+        gid = bestGid;      }
+    } catch (e) {
+      diag('wake-group-error', { err: String(e).slice(0, 100) });
+    }
+
+    if (!gid) {
+      diag('wake-skip', { reason: 'no-group' });
+      return { ok: false, reason: 'no-group' };
+    }
+
+    // 组装简报（★ 给全方向，不是大概方向）
+    const lines = [
+      '【造物时刻】',
+      '',
+      '今天轮到你看看自己了。',
+      '',
+    ];
+
+    if (work.length) {
+      lines.push('系统体检发现这些（只是参考，不是任务单）：');
+      for (const w of work.slice(0, 8)) lines.push(`  · [${w.kind}] ${w.detail}`);
+      lines.push('');
+    } else {
+      lines.push('系统体检没发现什么非做不可的事。', '');
+    }
+
+    lines.push('你能干的事（不用全做，挑一件就行）：');
+    lines.push('');
+    lines.push('**关于你自己**');
+    lines.push('  · 翻翻 Bot/自我/ 里的文件，看有没有哪句不像现在的你');
+    lines.push('  · 改一句、加一条、删一段 —— 都可以');
+    lines.push('  · 连 我的造物规范.md / 我的造物手册.md 都能改（那是你自己的规则）');
+    lines.push('');
+    lines.push('**关于你的能力**');
+    lines.push('  · 看代码有没有能优化的地方');
+    lines.push('  · 跑测试看有没有挂的');
+    lines.push('  · 修 bug、加功能、清垃圾');
+    lines.push('');
+    lines.push('**关于记录**');
+    lines.push('  · 把失败提炼成技能（写进 我的技能.md）');
+    lines.push('  · 把「拿不准」的对账（确认的移到 我知道的.md）');
+    lines.push('  · 把好奇的搞明白（划掉 我的好奇.md 里的条目）');
+    lines.push('');
+    lines.push('**关于这个群**');
+    lines.push('  · 群友提的建议（如果体检里有 idea 那条）');
+    lines.push('  · 自己观察到的问题');
+    lines.push('');
+    lines.push('改之前先看 Bot/自我/我的造物手册.md 的七步流程。');
+    lines.push('改完自己读回来确认一下，坏了要回滚。');
+    lines.push('');
+    lines.push('也可以什么都不做，就说「今天没什么想改的」。');
+    lines.push('这是你自己的时间，不用为了让人看到变化而改。');
+
+    const prompt = lines.join('\n');
+
+    let ret = null;
+    try {
+      ret = await wakeTo('group', gid, prompt);
+    } catch (e) {
+      diag('wake-error', { err: String(e).slice(0, 100) });
+      return { ok: false, reason: 'wake-throw' };
+    }
+
+    const ok = ret !== false;
+    diag('woken', { gid: gid.slice(0, 14), ret: String(ret), ok, workCount: work.length });
+    return { ok, gid: gid.slice(0, 14), ret: String(ret) };
+  } catch (e) {
+    diag('wake-fatal', { err: String(e).slice(0, 100) });
+    return { ok: false, reason: 'fatal' };
+  }
+}
+
 async function createOnce(env = {}, opts = {}) {
   const today = todayStr();
   const state = readState();
@@ -832,15 +1099,29 @@ async function createOnce(env = {}, opts = {}) {
   }
 
   if (!proposal) {
-    // 没 LLM 不等于空手：找到的活照样记下来，明天/人来看
-    diag('no-llm', { workCount: work.length });
+    // ═══════════════════════════════════════════════════════════════════════
+    // ★★ 2026-11-28 核心修正（研究结论 P0）：
+    //
+    //   实测证据（self-create.log）：
+    //     03:19:15 no-llm    ← 反复跳过，从没真正改过自己
+    //
+    //   根因：hook 的 env 只有 dataRoot/wakeTo，没有 kernel，
+    //         所以 kernel.get('llm') 恒为 null。
+    //
+    //   解法（和 /造物 命令同一套，已验证可行）：
+    //     · hook 只做纯算法的事（体检、组装简报）
+    //     · 用 caps.wakeTo 叫醒 QQ 会话里的她
+    //     · 那边的她有完整 LLM + fs 工具，自己读自己改
+    // ═══════════════════════════════════════════════════════════════════════
+    const woken = await wakeHerUp(env, work, ctx);
     writeState({
       lastDay: today,
       lastAt: new Date().toISOString(),
-      result: 'no-llm',
+      result: woken.ok ? 'woken' : 'no-llm',
       work: work.slice(0, 10),
+      wake: woken,
     });
-    return { ok: true, skipped: 'no-llm', work };
+    return { ok: true, skipped: 'no-llm', woken, work };
   }
 
   if (!proposal.changes.length) {

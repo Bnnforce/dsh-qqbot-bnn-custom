@@ -21,7 +21,7 @@
  */
 import { resolve, sep } from 'node:path';
 import { appendLogRotating } from '../lib/log-rotate.mjs';
-import { reviewToolCall, describeReview, RISK } from '../lib/risk-review.mjs';
+import { reviewToolCall, describeReview, decidePolicy, isUserDataPath, RISK } from '../lib/risk-review.mjs';
 import { registerWithFallback } from './zz-central-scheduler.mjs';
 import { DATA_ROOT, WORKSPACE_ROOT } from '../lib/pack-paths.mjs';
 import { IMAGE_ROOT } from '../lib/dirs.mjs';
@@ -343,14 +343,31 @@ function currentFileReg(agent, entry) {
  * @returns {string|undefined} undefined = 放行；字符串 = 拒绝理由
  */
 export function readDenyReason({ isWebSession = false, entry = null, reg = null, filePath = '', hasWriteIntent = false, now = Date.now() } = {}) {
-  if (isWebSession) return undefined;          // ① Web/dock
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ★★ 2026-11-28 大改（主人要求「极致自主」）：
+  //
+  //   旧逻辑：群里读任何文件都要消息里有「写进文件」这类词，否则一律拒。
+  //   实测后果（security-guard.log）：
+  //     DENY read why="群里默认不读文件；需要的话请明确说..."
+  //   ⇒ 她连看一眼自己的自我文件都不行，每次都要主人说特定词。
+  //     自主性直接归零。
+  //
+  //   新逻辑：**主人读任何文件都放行**（她有 fs 工具就是为了用）。
+  //           群友仍然受限（他们只需要聊天，不需要翻文件系统）。
+  //
+  //   注意：本函数只管「读」。写有写的一套（reviewFileOp 的分区判定）。
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (isWebSession) return undefined;          // ① Web/dock：无 QQ 入站上下文
   if (!entry) return undefined;                // ② 无记录 → 下游兜底
+
+  // ③ ★ 主人：读什么都放行（这是「自主」的基础，连自己文件都看不了就别谈自主了）
+  if (entry.isOwner === true) return undefined;
+
+  // ④ 群友：仍然受限 —— 只允许读「本次消息带来的那份文件」
   const path = String(filePath ?? '');
   const paths = Array.isArray(reg?.paths) ? reg.paths : [];
   const ts = numOr0(reg?.at);
-  // ③ 本次消息带来的文件：只读、且只限这一份
   if (path && paths.includes(path) && ts > 0 && now - ts <= FILE_REG_TTL_MS) return undefined;
-  // ④ 其它路径：沿用重工具规则
   if (hasWriteIntent) return undefined;
   if (paths.length > 0) return '只能读本次消息带来的那份文件';
   return '群里默认不读文件；需要的话请明确说“写进文件/新建文档/保存到备忘录”';
@@ -460,8 +477,49 @@ function guard(exec) {
       }
 
       // 高危：放行，但留审查痕迹
+      // ═══════════════════════════════════════════════════════════════════
+      // ★★ 2026-11-28 分级放行（主人要求：不要每步都确认）
+      //
+      //   依赖 hitl-guardrail 的思路：**模型建议，策略决定**。
+      //   规则在代码里，不在提示词里 —— 可复现、不漂移。
+      //
+      //   auto  → 完全自动（她自己的地盘：自我文件、人格规则、自主目录）
+      //   audit → 自动放行 + 留痕（改代码、插件数据、工作区外）
+      //   ask   → 需要主人确认（改插件本体、删用户数据、系统文件）
+      //   deny  → 一律拒
+      // ═══════════════════════════════════════════════════════════════════
       if (risk.level === RISK.HIGH) {
-        note(`HIGH-RISK allow name=${name} reasons=${risk.reasons.join('|')} sender=${currentEntry(exec?.agent)?.entry?.senderId ?? '?'}`);
+        const policy = (() => {
+          try {
+            // 从 exec.arguments 里挖出文件路径（不同工具字段名不同）
+            const a = exec?.arguments ?? {};
+            const filePath = String(
+              a.file_path ?? a.path ?? a.file ?? a.target ?? '',
+            );
+            const act = name === 'delete' ? 'delete' : (name === 'read' ? 'read' : 'edit');
+            return decidePolicy(risk.zone ?? '', act, risk.abs ?? filePath);
+          } catch {
+            return { verdict: 'audit', reason: '策略判定异常，保守留痕' };
+          }
+        })();
+
+        const senderId = currentEntry(exec?.agent)?.entry?.senderId ?? '?';
+
+        if (policy.verdict === 'deny') {
+          note(`POLICY-DENY name=${name} reason=${policy.reason} sender=${senderId}`);
+          return `这个我不做（${policy.reason}）`;
+        }
+
+        if (policy.verdict === 'ask') {
+          note(`POLICY-ASK name=${name} reason=${policy.reason} sender=${senderId}`);
+          return `这个要主人点头：「${policy.reason}」`;
+        }
+
+        // auto / audit 都放行，audit 额外留痕
+        if (policy.verdict === 'audit') {
+          note(`POLICY-AUDIT name=${name} reason=${policy.reason} sender=${senderId}`);
+        }
+        // auto：静默放行（不写日志，省 IO）
       }
 
     // ═══════════════════════════════════════════════════════════════════════
